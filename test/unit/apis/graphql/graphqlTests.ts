@@ -301,7 +301,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response.data).is.atLeast({ cancel: { success: true }});
+      assert.that(response.data as object).is.atLeast({ cancel: { success: true }});
       assert.that(cancelledCommands.length).is.equalTo(1);
       assert.that(cancelledCommands[0]).is.atLeast(commandIdentifier);
     });
@@ -390,7 +390,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response.data).is.atLeast({ cancel: { success: false }});
+      assert.that(response.data as object).is.atLeast({ cancel: { success: false }});
     });
   });
 
@@ -1191,7 +1191,7 @@ suite('graphql', function (): void {
 
       const response = await client.query({ query });
 
-      assert.that(response.data).is.atLeast({
+      assert.that(response.data as object).is.atLeast({
         sampleView: {
           all: [
             {

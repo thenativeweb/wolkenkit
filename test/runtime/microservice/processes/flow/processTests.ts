@@ -421,7 +421,7 @@ suite('flow process', function (): void {
           [
             (data): void => {
               try {
-                assert.that(data).is.atLeast({
+                assert.that(data as object).is.atLeast({
                   name: 'flowSampleFlowUpdated',
                   data: {}
                 });

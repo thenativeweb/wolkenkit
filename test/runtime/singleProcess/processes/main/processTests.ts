@@ -170,7 +170,7 @@ suite('main process', function (): void {
           [
             (data): void => {
               try {
-                assert.that(data).is.atLeast({
+                assert.that(data as object).is.atLeast({
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -182,7 +182,7 @@ suite('main process', function (): void {
             },
             (data): void => {
               try {
-                assert.that(data).is.atLeast({
+                assert.that(data as object).is.atLeast({
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -234,7 +234,7 @@ suite('main process', function (): void {
         [
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 aggregateIdentifier,
                 name: 'triggeredFlow',
                 data: { flowName: 'neverFlow' }
@@ -246,7 +246,7 @@ suite('main process', function (): void {
           },
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 aggregateIdentifier,
                 name: 'executedFromFlow',
                 data: {
@@ -442,7 +442,7 @@ suite('main process', function (): void {
       }
 
       assert.that(resultItems.length).is.equalTo(1);
-      assert.that(resultItems[0]).is.atLeast({
+      assert.that(resultItems[0] as object).is.atLeast({
         aggregateIdentifier: {
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate' }
@@ -515,7 +515,7 @@ suite('main process', function (): void {
         [
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'flowSampleFlowUpdated',
                 data: {}
               });
@@ -526,7 +526,7 @@ suite('main process', function (): void {
           },
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'viewSampleViewUpdated',
                 data: {}
               });

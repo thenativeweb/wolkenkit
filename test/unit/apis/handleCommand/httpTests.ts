@@ -288,7 +288,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        assert.that(data).is.atLeast({
+        assert.that(data as object).is.atLeast({
           id: receivedCommands[0].id
         });
       });
