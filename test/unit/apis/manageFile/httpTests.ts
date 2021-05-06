@@ -295,10 +295,10 @@ suite('manageFile/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(headers['x-id']).is.startingWith(file.id);
-        assert.that(headers['x-name']).is.startingWith(file.name);
-        assert.that(headers['content-type']).is.startingWith('text/plain');
-        assert.that(headers['content-length']).is.equalTo(`${file.content.length}`);
+        assert.that(headers['x-id'] as string).is.startingWith(file.id);
+        assert.that(headers['x-name'] as string).is.startingWith(file.name);
+        assert.that(headers['content-type'] as string).is.startingWith('text/plain');
+        assert.that(headers['content-length'] as string).is.equalTo(`${file.content.length}`);
         assert.that(data).is.equalTo(file.content);
       });
     });

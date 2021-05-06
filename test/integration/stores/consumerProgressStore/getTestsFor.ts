@@ -157,7 +157,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
           aggregateIdentifier,
           revision: 1
         });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.RevisionTooLow.code);
+      }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.RevisionTooLow.code);
     });
 
     test('does not update the revision if the revision decreased.', async (): Promise<void> => {

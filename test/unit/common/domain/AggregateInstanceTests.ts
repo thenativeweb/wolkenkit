@@ -415,7 +415,7 @@ suite('AggregateInstance', (): void => {
             [
               (data): void => {
                 try {
-                  assert.that(data).is.atLeast({
+                  assert.that(data as object).is.atLeast({
                     aggregateIdentifier,
                     name: 'succeeded',
                     data: {}
@@ -427,7 +427,7 @@ suite('AggregateInstance', (): void => {
               },
               (data): void => {
                 try {
-                  assert.that(data).is.atLeast({
+                  assert.that(data as object).is.atLeast({
                     aggregateIdentifier,
                     name: 'executed',
                     data: {

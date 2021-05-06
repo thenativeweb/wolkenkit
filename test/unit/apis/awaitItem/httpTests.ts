@@ -160,7 +160,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(streamElement.metadata.token).is.matching(regex);
+              assert.that(streamElement.metadata.token as string).is.matching(regex);
             }
           ]));
         });
@@ -208,7 +208,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(streamElement.metadata.token).is.matching(regex);
+              assert.that(streamElement.metadata.token as string).is.matching(regex);
 
               resolve();
             }
@@ -234,7 +234,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(streamElement.metadata.token).is.matching(regex);
+              assert.that(streamElement.metadata.token as string).is.matching(regex);
 
               resolve();
             }
@@ -447,7 +447,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(streamElement.metadata.token).is.matching(regex);
+              assert.that(streamElement.metadata.token as string).is.matching(regex);
             }
           ]));
         });

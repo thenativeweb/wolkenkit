@@ -858,7 +858,7 @@ suite('queryDomainEventStore/http', (): void => {
           },
           async (domainEvent): Promise<void> => {
             try {
-              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              assert.that(domainEvent as object).is.atLeast({ id: domainEvent1.id });
               await collector.signal();
             } catch (ex: unknown) {
               await collector.fail(ex);
@@ -866,7 +866,7 @@ suite('queryDomainEventStore/http', (): void => {
           },
           async (domainEvent): Promise<void> => {
             try {
-              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              assert.that(domainEvent as object).is.atLeast({ id: domainEvent2.id });
               await collector.signal();
             } catch (ex: unknown) {
               await collector.fail(ex);
@@ -1134,7 +1134,7 @@ suite('queryDomainEventStore/http', (): void => {
           },
           async (domainEvent): Promise<void> => {
             try {
-              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              assert.that(domainEvent as object).is.atLeast({ id: domainEvent1.id });
               await collector.signal();
             } catch (ex: unknown) {
               await collector.fail(ex);
@@ -1142,7 +1142,7 @@ suite('queryDomainEventStore/http', (): void => {
           },
           async (domainEvent): Promise<void> => {
             try {
-              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              assert.that(domainEvent as object).is.atLeast({ id: domainEvent2.id });
               await collector.signal();
             } catch (ex: unknown) {
               await collector.fail(ex);

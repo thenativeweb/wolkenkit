@@ -178,7 +178,7 @@ suite('view process', function (): void {
         [
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'flowSampleFlowUpdated',
                 data: {}
               });
@@ -189,7 +189,7 @@ suite('view process', function (): void {
           },
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'viewSampleViewUpdated',
                 data: {}
               });
