@@ -198,7 +198,7 @@
     "apollo-client": "2.6.10",
     "apollo-link-http": "1.5.17",
     "apollo-link-ws": "1.0.20",
-    "assertthat": "5.2.5",
+    "assertthat": "6.0.0",
     "graphql-tag": "2.11.0",
     "next": "10.0.7",
     "node-fetch": "2.6.1",
