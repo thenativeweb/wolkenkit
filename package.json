@@ -133,7 +133,7 @@
     "@types/cors": "2.8.10",
     "@types/ejs": "3.0.6",
     "@types/express": "4.17.11",
-    "@types/ioredis": "4.22.0",
+    "@types/ioredis": "4.26.1",
     "@types/lodash": "4.14.168",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.7",
