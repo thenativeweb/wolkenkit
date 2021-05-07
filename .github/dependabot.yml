@@ -1,0 +1,20 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
