@@ -5,7 +5,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/mocha": "8.2.1",
-    "mocha": "8.3.0",
+    "mocha": "8.4.0",
     "run-script-os": "1.1.5",
     "ts-node": "9.1.1"
   },
