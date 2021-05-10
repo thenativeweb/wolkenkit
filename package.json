@@ -167,7 +167,7 @@
     "ioredis": "4.27.1",
     "is-typescript": "4.0.1",
     "isolated": "3.0.17",
-    "limes": "6.1.0",
+    "limes": "6.1.2",
     "lodash": "4.17.21",
     "minio": "7.0.18",
     "mongodb": "3.6.5",
