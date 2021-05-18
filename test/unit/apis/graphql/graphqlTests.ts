@@ -11,7 +11,6 @@ import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscri
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
@@ -38,6 +37,7 @@ import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import * as errors from '../../../../lib/common/errors';
 
 suite('graphql', function (): void {
   this.timeout(30_000);

@@ -1,11 +1,11 @@
 import { assert } from 'assertthat';
 import { compileWithTypeScript } from '../../../../lib/common/application/compileWithTypeScript';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { isolated } from 'isolated';
 import path from 'path';
 import { stripIndent } from 'common-tags';
+import * as errors from '../../../../lib/common/errors';
 
 suite('compileApplication', function (): void {
   this.timeout(10 * 1_000);

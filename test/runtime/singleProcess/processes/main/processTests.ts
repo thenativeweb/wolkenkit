@@ -7,7 +7,6 @@ import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand'
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../../lib/common/errors';
 import fetch from 'node-fetch';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getSocketPaths } from '../../../../shared/getSocketPaths';
@@ -33,6 +32,7 @@ import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import * as errors from '../../../../../lib/common/errors';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 

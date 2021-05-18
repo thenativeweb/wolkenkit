@@ -1,8 +1,8 @@
 import { Application } from '../application/Application';
 import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
-import { errors } from '../errors';
 import { Value } from 'validate-value';
+import * as errors from '../errors';
 
 const validateCommandWithMetadata = function <TCommandData extends CommandData> ({
   command,
@@ -43,7 +43,7 @@ const validateCommandWithMetadata = function <TCommandData extends CommandData> 
   try {
     schemaData.validate(commandData, { valueName: 'command.data' });
   } catch (ex: unknown) {
-    throw new errors.CommandMalformed((ex as Error).message, { cause: ex as Error });
+    throw new errors.CommandMalformed({ message: (ex as Error).message, cause: ex as Error });
   }
 };
 

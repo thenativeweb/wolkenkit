@@ -1,9 +1,9 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createLockStore }: {

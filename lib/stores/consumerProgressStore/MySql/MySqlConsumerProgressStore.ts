@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
 import { MySqlConsumerProgressStoreOptions } from './MySqlConsumerProgressStoreOptions';
@@ -10,6 +9,7 @@ import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { MysqlError, Pool, PoolConnection } from 'mysql';
+import * as errors from '../../../common/errors';
 
 class MySqlConsumerProgressStore implements ConsumerProgressStore {
   protected pool: Pool;

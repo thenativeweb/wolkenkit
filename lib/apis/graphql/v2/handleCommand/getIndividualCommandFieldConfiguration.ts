@@ -7,7 +7,6 @@ import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
 import { CommandHandler } from '../../../../common/elements/CommandHandler';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
@@ -25,6 +24,7 @@ import {
   GraphQLObjectType,
   GraphQLString
 } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 const commandSchema = new Value(getCommandSchema());

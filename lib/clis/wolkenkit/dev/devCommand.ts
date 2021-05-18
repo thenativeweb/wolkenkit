@@ -3,7 +3,6 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { configurationDefinition } from '../../../runtimes/singleProcess/processes/main/configurationDefinition';
 import { DevOptions } from './DevOptions';
-import { errors } from '../../../common/errors';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
@@ -11,6 +10,7 @@ import { startProcess } from '../../../runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../runtimes/shared/toEnvironmentVariables';
 import { validatePort } from './validatePort';
 import { validateSocket } from './validateSocket';
+import * as errors from '../../../common/errors';
 
 const devCommand = function (): Command<DevOptions> {
   return {

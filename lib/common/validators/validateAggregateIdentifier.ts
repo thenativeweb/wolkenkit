@@ -1,6 +1,6 @@
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { Application } from '../application/Application';
-import { errors } from '../errors';
+import * as errors from '../errors';
 
 const validateAggregateIdentifier = function ({
   aggregateIdentifier,

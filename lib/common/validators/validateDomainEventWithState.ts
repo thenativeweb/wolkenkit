@@ -1,8 +1,8 @@
 import { Application } from '../application/Application';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
-import { errors } from '../errors';
 import { Value } from 'validate-value';
+import * as errors from '../errors';
 
 const validateDomainEventWithState = function <TDomainEventData extends DomainEventData, TState> ({
   domainEvent,
@@ -43,7 +43,7 @@ const validateDomainEventWithState = function <TDomainEventData extends DomainEv
   try {
     schemaData.validate(domainEventData, { valueName: 'domainEvent.data' });
   } catch (ex: unknown) {
-    throw new errors.DomainEventMalformed((ex as Error).message, { cause: ex as Error });
+    throw new errors.DomainEventMalformed({ message: (ex as Error).message, cause: ex as Error });
   }
 };
 

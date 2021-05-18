@@ -1,7 +1,6 @@
 import { Application } from '../../../../common/application/Application';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
@@ -21,6 +20,7 @@ import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { GraphQLFieldConfig, GraphQLOutputType, GraphQLString } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

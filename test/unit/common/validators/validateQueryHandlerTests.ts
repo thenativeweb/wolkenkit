@@ -1,7 +1,7 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { validateQueryHandler } from '../../../../lib/common/validators/validateQueryHandler';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateQueryHandler', (): void => {
   const queryHandler = {

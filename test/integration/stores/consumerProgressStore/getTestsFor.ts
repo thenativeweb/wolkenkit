@@ -2,9 +2,9 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { assert } from 'assertthat';
 import { ConsumerProgressStore } from '../../../../lib/stores/consumerProgressStore/ConsumerProgressStore';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createConsumerProgressStore }: {

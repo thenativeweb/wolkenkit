@@ -7,13 +7,13 @@ import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
-import { errors } from '../errors';
 import { GetAggregateService } from './types/GetAggregateService';
 import { State } from '../elements/State';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { v4 } from 'uuid';
 import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
+import * as errors from '../errors';
 
 const getAggregateService: GetAggregateService = function <TState extends State> ({ aggregateInstance, application, command }: {
   aggregateInstance: AggregateInstance<TState>;

@@ -1,8 +1,8 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { FlowDefinition } from '../../../../lib/common/application/FlowDefinition';
 import { validateFlowDefinition } from '../../../../lib/common/validators/validateFlowDefinition';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateFlowDefinition', (): void => {
   const flowDefinition: FlowDefinition = {

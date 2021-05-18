@@ -9,7 +9,6 @@ import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
-import { errors } from '../errors';
 import { getAggregateService } from '../services/getAggregateService';
 import { GetAggregateService } from '../services/types/GetAggregateService';
 import { getAggregatesService } from '../services/getAggregatesService';
@@ -33,6 +32,7 @@ import { State } from '../elements/State';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { validateCommandWithMetadata } from '../validators/validateCommandWithMetadata';
 import { cloneDeep, get } from 'lodash';
+import * as errors from '../errors';
 
 class AggregateInstance<TState extends State> {
   public readonly application: Application;

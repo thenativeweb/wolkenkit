@@ -1,6 +1,6 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
 import { ItemIdentifier } from '../elements/ItemIdentifier';
+import * as errors from '../errors';
 
 const validateItemIdentifier = function ({
   itemIdentifier,

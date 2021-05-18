@@ -8,12 +8,12 @@ import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/
 import { CustomError } from 'defekt';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { toArray } from 'streamtoarray';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('queryDomainEventStore/http/Client', (): void => {
   suite('/v2', (): void => {

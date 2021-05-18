@@ -2,7 +2,6 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { errors } from '../../../common/errors';
 import { Snapshot } from '../Snapshot';
 import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOptions';
 import { State } from '../../../common/elements/State';
@@ -10,6 +9,7 @@ import { TableNames } from './TableNames';
 import { ToDomainEventStream } from '../../utils/sqlServer/ToDomainEventStream';
 import { ConnectionPool, RequestError, Table, TYPES as Types } from 'mssql';
 import { Readable, Transform, TransformCallback } from 'stream';
+import * as errors from '../../../common/errors';
 
 class SqlServerDomainEventStore implements DomainEventStore {
   protected pool: ConnectionPool;

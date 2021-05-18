@@ -1,7 +1,7 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { validateDomainEventHandler } from '../../../../lib/common/validators/validateDomainEventHandler';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateDomainEventHandler', (): void => {
   const domainEventHandler = {

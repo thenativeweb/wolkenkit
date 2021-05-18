@@ -1,7 +1,6 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { executeNotificationSubscribers } from '../../../../lib/common/domain/executeNotificationSubscribers';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
@@ -9,6 +8,7 @@ import { LoggerService } from '../../../../lib/common/services/LoggerService';
 import { Notification } from '../../../../lib/common/elements/Notification';
 import { NotificationDefinition } from '../../../../lib/common/elements/NotificationDefinition';
 import { NotificationService } from '../../../../lib/common/services/NotificationService';
+import * as errors from '../../../../lib/common/errors';
 
 suite('executeNotificationSubscribers', (): void => {
   let application: Application,

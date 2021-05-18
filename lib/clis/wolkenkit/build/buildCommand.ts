@@ -2,9 +2,9 @@ import { buildApplication } from '../../../common/application/buildApplication';
 import { BuildOptions } from './BuildOptions';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { errors } from '../../../common/errors';
 import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
+import * as errors from '../../../common/errors';
 
 const buildCommand = function (): Command<BuildOptions> {
   return {

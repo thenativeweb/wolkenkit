@@ -1,6 +1,5 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
-import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -12,6 +11,7 @@ import { promisify } from 'util';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import * as errors from '../../../../common/errors';
 
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
@@ -90,7 +90,7 @@ const getFile = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.RequestMalformed.code: {

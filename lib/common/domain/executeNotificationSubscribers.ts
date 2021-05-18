@@ -1,10 +1,10 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
 import { flaschenpost } from 'flaschenpost';
 import { LoggerService } from '../services/LoggerService';
 import { Notification } from '../elements/Notification';
 import { NotificationService } from '../services/NotificationService';
 import { withLogMetadata } from '../utils/logging/withLogMetadata';
+import * as errors from '../errors';
 
 const logger = flaschenpost.getLogger();
 

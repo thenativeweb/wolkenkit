@@ -1,5 +1,5 @@
-import { errors } from '../errors';
 import { isFunction, isObjectLike, isUndefined } from 'lodash';
+import * as errors from '../errors';
 
 const validateNotificationHandler = function ({ notificationHandler }: {
   notificationHandler: any;

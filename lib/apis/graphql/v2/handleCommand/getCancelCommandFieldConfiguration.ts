@@ -1,6 +1,5 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
@@ -11,6 +10,7 @@ import { validateItemIdentifier } from '../../../../common/validators/validateIt
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLBoolean, GraphQLFieldConfig, GraphQLInputObjectType, GraphQLObjectType } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

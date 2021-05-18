@@ -1,12 +1,12 @@
 import { AggregateDefinition } from './AggregateDefinition';
 import { AggregateEnhancer } from '../../tools/AggregateEnhancer';
 import { DomainDefinition } from './DomainDefinition';
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
 import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
+import * as errors from '../errors';
 
 const getDomainDefinition = async function ({ domainDirectory }: {
   domainDirectory: string;
@@ -51,10 +51,10 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         rawAggregate = (await import(aggregatePath)).default;
       } catch (ex: unknown) {
         if (ex instanceof SyntaxError) {
-          throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
+          throw new errors.ApplicationMalformed({ message: `Syntax error in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, cause: ex });
         }
         if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
-          throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex as Error });
+          throw new errors.ApplicationMalformed({ message: `Missing import in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, cause: ex as Error });
         }
 
         throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);

@@ -1,7 +1,7 @@
-import { errors } from '../errors';
 import { validateCommandHandler } from './validateCommandHandler';
 import { validateDomainEventHandler } from './validateDomainEventHandler';
 import { isArray, isFunction, isObject, isUndefined } from 'lodash';
+import * as errors from '../errors';
 
 const validateAggregateDefinition = function ({ aggregateDefinition }: {
   aggregateDefinition: any;

@@ -1,9 +1,9 @@
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { SqlServerLockStoreOptions } from './SqlServerLockStoreOptions';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
+import * as errors from '../../../common/errors';
 
 class SqlServerLockStore implements LockStore {
   protected pool: ConnectionPool;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { errors } from '../../lib/common/errors';
+import * as errors from '../../lib/common/errors';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';

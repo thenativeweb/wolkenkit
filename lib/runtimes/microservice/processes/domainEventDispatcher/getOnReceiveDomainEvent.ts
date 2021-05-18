@@ -1,13 +1,13 @@
 import { Application } from '../../../../common/application/Application';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnReceiveDomainEvent';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -55,7 +55,8 @@ const getOnReceiveDomainEvent = function ({
         )
       );
 
-      throw new errors.RequestFailed('Failed to enqueue domain event in priority queue.', {
+      throw new errors.RequestFailed({
+        message: 'Failed to enqueue domain event in priority queue.',
         cause: ex,
         data: { domainEvent }
       });

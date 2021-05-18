@@ -1,6 +1,5 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/queryView/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -10,6 +9,7 @@ import { loadApplication } from '../../../../lib/common/application/loadApplicat
 import { runAsServer } from '../../../shared/http/runAsServer';
 import streamToString from 'stream-to-string';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('queryView/http', (): void => {
   const identityProviders = [ identityProvider ];

@@ -2,13 +2,13 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { errors } from '../../../common/errors';
 import { InMemoryDomainEventStoreOptions } from './InMemoryDomainEventStoreOptions';
 import { last } from 'lodash';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { PassThrough, Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 class InMemoryDomainEventStore implements DomainEventStore {
   protected domainEvents: DomainEvent<DomainEventData>[];

@@ -2,7 +2,6 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/manageFile/http/v2/Client';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import { getApi } from '../../../../lib/apis/manageFile/http';
@@ -14,6 +13,7 @@ import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import streamToString from 'stream-to-string';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('manageFile/http/Client', (): void => {
   const identityProviders = [ identityProvider ];

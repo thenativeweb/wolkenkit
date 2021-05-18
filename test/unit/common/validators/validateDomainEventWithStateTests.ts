@@ -3,11 +3,11 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/wolkenkit';
-import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
 import { validateDomainEventWithState } from '../../../../lib/common/validators/validateDomainEventWithState';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateDomainEventWithState', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

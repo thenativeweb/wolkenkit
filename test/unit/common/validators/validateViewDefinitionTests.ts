@@ -1,10 +1,10 @@
 import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateViewDefinition } from '../../../../lib/common/validators/validateViewDefinition';
 import { View } from '../../../../lib/common/elements/View';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateViewDefinition', (): void => {
   const viewDefinition: View<AskInfrastructure & TellInfrastructure> = {

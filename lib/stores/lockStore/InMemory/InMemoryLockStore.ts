@@ -1,8 +1,8 @@
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { InMemoryLockStoreOptions } from './InMemoryLockStoreOptions';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
+import * as errors from '../../../common/errors';
 
 class InMemoryLockStore implements LockStore {
   protected database: { locks: Lock[] };

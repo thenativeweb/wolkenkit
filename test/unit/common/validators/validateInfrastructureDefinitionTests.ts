@@ -1,10 +1,10 @@
 import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { InfrastructureDefinition } from '../../../../lib/common/application/InfrastructureDefinition';
 import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateInfrastructureDefinition } from '../../../../lib/common/validators/validateInfrastructureDefinition';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateInfrastructureDefinition', (): void => {
   const infrastructureDefinition: InfrastructureDefinition<AskInfrastructure, TellInfrastructure> = {

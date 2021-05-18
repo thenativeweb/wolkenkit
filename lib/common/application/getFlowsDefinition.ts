@@ -1,4 +1,3 @@
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { FlowDefinition } from './FlowDefinition';
 import { FlowEnhancer } from '../../tools/FlowEnhancer';
@@ -7,6 +6,7 @@ import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
 import { validateFlowDefinition } from '../validators/validateFlowDefinition';
+import * as errors from '../errors';
 
 const getFlowsDefinition = async function ({ flowsDirectory }: {
   flowsDirectory: string;
@@ -41,10 +41,10 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
       rawFlow = (await import(flowPath)).default;
     } catch (ex: unknown) {
       if (ex instanceof SyntaxError) {
-        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/flows/${flowName}'.`, { cause: ex });
+        throw new errors.ApplicationMalformed({ message: `Syntax error in '<app>/build/server/flows/${flowName}'.`, cause: ex });
       }
       if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
-        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/flows/${flowName}'.`, { cause: ex as Error });
+        throw new errors.ApplicationMalformed({ message: `Missing import in '<app>/build/server/flows/${flowName}'.`, cause: ex as Error });
       }
 
       throw new errors.FileNotFound(`No flow definition in '<app>/build/server/flows/${flowName}' found.`);

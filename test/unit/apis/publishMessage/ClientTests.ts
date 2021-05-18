@@ -2,9 +2,9 @@ import { Application } from 'express';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/publishMessage/http/v2/Client';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/publishMessage/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
+import * as errors from '../../../../lib/common/errors';
 
 suite('publishMessage/http/Client', (): void => {
   suite('/v2', (): void => {

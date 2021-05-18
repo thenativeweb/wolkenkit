@@ -1,10 +1,10 @@
 import { AskInfrastructure } from '../elements/AskInfrastructure';
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { Hooks } from '../elements/Hooks';
 import { isErrnoException } from '../utils/isErrnoException';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { validateHooksDefinition } from '../validators/validateHooksDefinition';
+import * as errors from '../errors';
 
 const getHooksDefinition = async function ({ hooksDirectory }: {
   hooksDirectory: string;
@@ -19,10 +19,10 @@ const getHooksDefinition = async function ({ hooksDirectory }: {
     hooksDefinition = (await import(hooksDirectory)).default;
   } catch (ex: unknown) {
     if (ex instanceof SyntaxError) {
-      throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/hooks'.`, { cause: ex });
+      throw new errors.ApplicationMalformed({ message: `Syntax error in '<app>/build/server/hooks'.`, cause: ex });
     }
     if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
-      throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/hooks'.`, { cause: ex as Error });
+      throw new errors.ApplicationMalformed({ message: `Missing import in '<app>/build/server/hooks'.`, cause: ex as Error });
     }
 
     // But throw an error if the entry is a directory without importable content.

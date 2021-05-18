@@ -1,9 +1,9 @@
-import { errors } from '../../../common/errors';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { InMemoryFileStoreOptions } from './InMemoryFileStoreOptions';
 import { Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 class InMemoryFileStore implements FileStore {
   protected files: Record<string, { data: Buffer; metadata: FileMetadata } | undefined>;

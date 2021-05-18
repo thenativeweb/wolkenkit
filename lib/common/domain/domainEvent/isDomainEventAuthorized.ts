@@ -3,10 +3,10 @@ import { cloneDeep } from 'lodash';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventHandler } from '../../elements/DomainEventHandler';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
-import { errors } from '../../errors';
 import { Services } from './Services';
 import { State } from '../../elements/State';
 import { TellInfrastructure } from '../../elements/TellInfrastructure';
+import * as errors from '../../errors';
 
 const isDomainEventAuthorized = async function ({
   domainEventWithState,

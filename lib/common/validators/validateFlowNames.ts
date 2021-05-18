@@ -1,5 +1,5 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
+import * as errors from '../errors';
 
 const validateFlowNames = function ({ flowNames, application }: {
   flowNames: string[];

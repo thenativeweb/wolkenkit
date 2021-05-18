@@ -1,6 +1,5 @@
 import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
-import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
@@ -15,6 +14,7 @@ import { TableNames } from './TableNames';
 import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { MysqlError, Pool, PoolConnection } from 'mysql';
+import * as errors from '../../../common/errors';
 
 class MySqlPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;

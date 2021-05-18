@@ -2,7 +2,6 @@ import { ApolloServer } from 'apollo-server-express';
 import { Application } from '../../../common/application/Application';
 import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
-import { errors } from '../../../common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
@@ -21,6 +20,7 @@ import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
 import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
 import { flaschenpost, getMiddleware as getLoggingMiddleware } from 'flaschenpost';
+import * as errors from '../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

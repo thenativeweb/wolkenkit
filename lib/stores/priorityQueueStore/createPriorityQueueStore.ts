@@ -1,4 +1,3 @@
-import { errors } from '../../common/errors';
 import { InMemoryPriorityQueueStore } from './InMemory';
 import { MongoDbPriorityQueueStore } from './MongoDb';
 import { MySqlPriorityQueueStore } from './MySql';
@@ -6,6 +5,7 @@ import { PostgresPriorityQueueStore } from './Postgres';
 import { PriorityQueueStore } from './PriorityQueueStore';
 import { PriorityQueueStoreOptions } from './PriorityQueueStoreOptions';
 import { SqlServerPriorityQueueStore } from './SqlServer';
+import * as errors from '../../common/errors';
 
 const createPriorityQueueStore = async function<TItem extends object, TItemIdentifier> (
   options: PriorityQueueStoreOptions<TItem, TItemIdentifier>

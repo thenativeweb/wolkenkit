@@ -1,7 +1,7 @@
 import { Application } from '../../../common/application/Application';
-import { errors } from '../../../common/errors';
 import { ReplayConfiguration } from './ReplayConfiguration';
 import { Value } from 'validate-value';
+import * as errors from '../../../common/errors';
 
 const validateReplayConfiguration = function ({ application, replayConfiguration }: {
   application: Application;
@@ -57,7 +57,7 @@ const validateReplayConfiguration = function ({ application, replayConfiguration
   try {
     value.validate(replayConfiguration, { valueName: 'replayConfiguration' });
   } catch (ex: unknown) {
-    throw new errors.ReplayConfigurationInvalid(undefined, { cause: ex });
+    throw new errors.ReplayConfigurationInvalid({ cause: ex });
   }
 
   const typeSafeReplayConfiguration: ReplayConfiguration = replayConfiguration;
