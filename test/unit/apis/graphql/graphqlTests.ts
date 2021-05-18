@@ -159,7 +159,7 @@ suite('graphql', function (): void {
           webSocketEndpoint: '/v2/'
         });
       }).is.throwingAsync<CustomError>((ex): boolean =>
-        ex.code === 'EGRAPHQLERROR' && ex.message === 'GraphQL schema validation failed.');
+        ex.code === errors.GraphQlError.code && ex.message === 'GraphQL schema validation failed.');
     });
   });
 
