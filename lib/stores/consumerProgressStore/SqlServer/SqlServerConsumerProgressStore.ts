@@ -1,11 +1,11 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
 import { SqlServerConsumerProgressStoreOptions } from './SqlServerConsumerProgressStoreOptions';
 import { TableNames } from './TableNames';
 import { ConnectionPool, RequestError, TYPES as Types } from 'mssql';
+import * as errors from '../../../common/errors';
 
 class SqlServerConsumerProgressStore implements ConsumerProgressStore {
   protected pool: ConnectionPool;

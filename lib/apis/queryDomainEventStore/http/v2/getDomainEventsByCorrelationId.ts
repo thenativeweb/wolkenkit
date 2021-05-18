@@ -1,5 +1,4 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isCustomError } from 'defekt';
@@ -8,6 +7,7 @@ import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -73,7 +73,7 @@ const getDomainEventsByCorrelationId = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.RequestMalformed.code: {

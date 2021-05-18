@@ -3,13 +3,13 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('handleDomainEvent/http', (): void => {
   let application: Application;

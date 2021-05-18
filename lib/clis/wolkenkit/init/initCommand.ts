@@ -5,7 +5,6 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { createDockerConfiguration } from './createDockerConfiguration';
 import ejs from 'ejs';
-import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
@@ -23,6 +22,7 @@ import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
 import { validateTemplate } from './validateTemplate';
 import { cp, mkdir } from 'shelljs';
+import * as errors from '../../../common/errors';
 
 const initCommand = function (): Command<InitOptions> {
   return {

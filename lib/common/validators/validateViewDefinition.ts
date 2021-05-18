@@ -1,7 +1,7 @@
-import { errors } from '../errors';
 import { validateNotificationSubscriber } from './validateNotificationSubscriber';
 import { validateQueryHandler } from './validateQueryHandler';
 import { isArray, isFunction, isObjectLike, isUndefined } from 'lodash';
+import * as errors from '../errors';
 
 const validateViewDefinition = function ({ viewDefinition }: {
   viewDefinition: any;

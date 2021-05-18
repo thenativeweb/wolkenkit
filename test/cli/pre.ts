@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { buildImages } from '../../docker/buildImages';
-import { errors } from '../../lib/common/errors';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
 import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
+import * as errors from '../../lib/common/errors';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async function (): Promise<void> {
@@ -15,7 +15,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
     const { code, stdout, stderr } = shell.exec('npx roboter build', { cwd: path.join(__dirname, '..', '..') });
 
     if (code !== 0) {
-      throw new errors.CompilationFailed('Failed to build wolkenkit.', { data: { stdout, stderr }});
+      throw new errors.CompilationFailed({ message: 'Failed to build wolkenkit.', data: { stdout, stderr }});
     }
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });

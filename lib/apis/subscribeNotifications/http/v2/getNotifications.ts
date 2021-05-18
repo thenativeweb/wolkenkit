@@ -1,6 +1,5 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
@@ -12,6 +11,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -98,7 +98,7 @@ const getNotifications = {
 
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         logger.error(
           'An unexpected error occured.',

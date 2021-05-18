@@ -2,7 +2,6 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { PostgresDomainEventStoreOptions } from './PostgresDomainEventStoreOptions';
 import QueryStream from 'pg-query-stream';
@@ -12,6 +11,7 @@ import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
 import { PassThrough, Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 class PostgresDomainEventStore implements DomainEventStore {
   protected pool: Pool;

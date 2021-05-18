@@ -1,6 +1,5 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { errors } from '../../../common/errors';
 import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getJwtSchema } from './getJwtSchema';
@@ -8,6 +7,7 @@ import { TokenOptions } from './TokenOptions';
 import { validateExpiration } from './validateExpiration';
 import { Value } from 'validate-value';
 import { IdentityProvider, Limes } from 'limes';
+import * as errors from '../../../common/errors';
 
 const tokenCommand = function (): Command<TokenOptions> {
   return {

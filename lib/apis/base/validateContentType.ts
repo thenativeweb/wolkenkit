@@ -1,6 +1,6 @@
-import { errors } from '../../common/errors';
 import { Request } from 'express';
 import typer from 'content-type';
+import * as errors from '../../common/errors';
 
 const validateContentType = function ({ expectedContentType, req }: {
   expectedContentType: string;
@@ -11,7 +11,7 @@ const validateContentType = function ({ expectedContentType, req }: {
   try {
     contentType = typer.parse(req);
   } catch (ex: unknown) {
-    throw new errors.ContentTypeMismatch(`Header content-type must be ${expectedContentType}.`, { cause: ex });
+    throw new errors.ContentTypeMismatch({ message: `Header content-type must be ${expectedContentType}.`, cause: ex });
   }
 
   if (contentType.type !== expectedContentType) {

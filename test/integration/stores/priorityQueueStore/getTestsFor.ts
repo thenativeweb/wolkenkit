@@ -3,7 +3,6 @@ import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buil
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import pForever from 'p-forever';
@@ -11,6 +10,7 @@ import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/Pr
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {

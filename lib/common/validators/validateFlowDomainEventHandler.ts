@@ -1,5 +1,5 @@
-import { errors } from '../errors';
 import { isFunction, isObjectLike, isUndefined } from 'lodash';
+import * as errors from '../errors';
 
 const validateFlowDomainEventHandler = function ({ domainEventHandler }: {
   domainEventHandler: any;

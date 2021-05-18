@@ -1,8 +1,8 @@
 import { CommandDispatcher } from './CommandDispatcher';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -23,7 +23,8 @@ const getOnCancelCommand = function ({ commandDispatcher }: {
         withLogMetadata('runtime', 'microservice/graphql', { commandIdentifierWithClient, error: ex })
       );
 
-      throw new errors.RequestFailed('Failed to cancel command in command dispatcher.', {
+      throw new errors.RequestFailed({
+        message: 'Failed to cancel command in command dispatcher.',
         cause: ex as Error,
         data: { commandIdentifierWithClient }
       });

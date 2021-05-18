@@ -1,6 +1,5 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { executeStreamQueryHandler } from '../../../../common/domain/executeStreamQueryHandler';
 import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -17,6 +16,7 @@ import {
   GraphQLList,
   GraphQLOutputType
 } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const getQueryFieldConfiguration = function ({ application, viewName, queryName, queryHandler }: {
   application: Application;

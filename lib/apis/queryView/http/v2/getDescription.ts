@@ -1,11 +1,11 @@
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getViewsDescriptionSchema } from '../../../../common/schemas/getViewsDescriptionSchema';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -34,7 +34,7 @@ const getDescription = {
 
         res.send(response);
       } catch (ex: unknown) {
-        const error = new errors.UnknownError(undefined, { cause: ex as Error });
+        const error = new errors.UnknownError({ cause: ex as Error });
 
         logger.error(
           'An unknown error occured.',

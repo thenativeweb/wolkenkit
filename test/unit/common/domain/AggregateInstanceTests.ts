@@ -13,7 +13,6 @@ import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../lib/common/errors';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
@@ -25,6 +24,7 @@ import { State } from '../../../../lib/common/elements/State';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { toArray } from 'streamtoarray';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('AggregateInstance', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

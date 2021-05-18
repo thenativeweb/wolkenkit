@@ -1,9 +1,9 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { Notification } from '../../../../lib/common/elements/Notification';
 import { NotificationSubscriber } from '../../../../lib/common/elements/NotificationSubscriber';
 import { validateNotificationSubscriber } from '../../../../lib/common/validators/validateNotificationSubscriber';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateNotificationSubscriber', (): void => {
   const notificationSubscriber: NotificationSubscriber<Notification, any> = {

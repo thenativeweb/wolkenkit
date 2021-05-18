@@ -8,7 +8,6 @@ import { createPublisher } from '../../../../lib/messaging/pubSub/createPublishe
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -25,6 +24,7 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
+import * as errors from '../../../../lib/common/errors';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];

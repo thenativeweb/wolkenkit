@@ -1,7 +1,7 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
 import { Notification } from '../elements/Notification';
 import { Value } from 'validate-value';
+import * as errors from '../errors';
 
 const validateNotification = function ({
   notification,

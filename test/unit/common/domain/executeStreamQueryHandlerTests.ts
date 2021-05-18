@@ -2,13 +2,13 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { ClientService } from '../../../../lib/common/services/ClientService';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { executeStreamQueryHandler } from '../../../../lib/common/domain/executeStreamQueryHandler';
 import { getClientService } from '../../../../lib/common/services/getClientService';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
 import { PassThrough, pipeline } from 'stream';
+import * as errors from '../../../../lib/common/errors';
 
 suite('executeStreamQueryHandler', (): void => {
   let application: Application,

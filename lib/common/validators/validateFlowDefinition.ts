@@ -1,6 +1,6 @@
-import { errors } from '../errors';
 import { validateFlowDomainEventHandler } from './validateFlowDomainEventHandler';
 import { isArray, isFunction, isObjectLike, isUndefined } from 'lodash';
+import * as errors from '../errors';
 
 const validateFlowDefinition = function ({ flowDefinition }: {
   flowDefinition: any;

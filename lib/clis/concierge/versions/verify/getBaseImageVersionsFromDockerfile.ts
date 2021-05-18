@@ -1,5 +1,5 @@
-import { errors } from '../../../../common/errors';
 import fs from 'fs';
+import * as errors from '../../../../common/errors';
 
 const getBaseImageVersionsFromDockerfile = async function ({ dockerfilePath, baseImage }: {
   dockerfilePath: string;

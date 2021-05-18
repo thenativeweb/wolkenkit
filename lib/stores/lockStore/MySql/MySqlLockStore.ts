@@ -1,5 +1,4 @@
 import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { MySqlLockStoreOptions } from './MySqlLockStoreOptions';
@@ -7,6 +6,7 @@ import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
 import { MysqlError, Pool, PoolConnection } from 'mysql';
+import * as errors from '../../../common/errors';
 
 class MySqlLockStore implements LockStore {
   protected pool: Pool;

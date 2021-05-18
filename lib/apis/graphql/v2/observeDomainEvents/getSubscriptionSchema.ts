@@ -1,7 +1,6 @@
 import { Application } from '../../../../common/application/Application';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import { errors } from '../../../../common/errors';
 import { getDomainEventsFieldConfiguration } from './getDomainEventsFieldConfiguration';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { GraphQLFieldConfig } from 'graphql';
@@ -12,6 +11,7 @@ import { SpecializedEventEmitter } from '../../../../common/utils/events/Special
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import * as errors from '../../../../common/errors';
 
 const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 

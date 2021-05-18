@@ -1,6 +1,5 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
 import { PostgresConsumerProgressStoreOptions } from './PostgresConsumerProgressStoreOptions';
@@ -8,6 +7,7 @@ import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { withTransaction } from '../../utils/postgres/withTransaction';
 import { Client, Pool, PoolClient } from 'pg';
+import * as errors from '../../../common/errors';
 
 class PostgresConsumerProgressStore implements ConsumerProgressStore {
   protected tableNames: TableNames;

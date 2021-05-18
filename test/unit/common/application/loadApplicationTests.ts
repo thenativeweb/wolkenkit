@@ -1,7 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { isolated } from 'isolated';
@@ -9,6 +8,7 @@ import { loadApplication } from '../../../../lib/common/application/loadApplicat
 import path from 'path';
 import { Services } from '../../../../lib/common/domain/domainEvent/Services';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('loadApplication', (): void => {
   test('throws an error if a non-existent directory is given.', async (): Promise<void> => {

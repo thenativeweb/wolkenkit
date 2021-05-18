@@ -1,6 +1,6 @@
-import { errors } from '../errors';
 import { isObjectLike } from 'lodash';
 import { validateNotificationHandler } from './validateNotificationHandler';
+import * as errors from '../errors';
 
 const validateNotificationsDefinition = function ({ notificationsDefinition }: {
   notificationsDefinition: any;

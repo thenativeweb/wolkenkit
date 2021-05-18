@@ -5,7 +5,6 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
@@ -23,6 +22,7 @@ import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { v4 } from 'uuid';
 import { Value } from 'validate-value';
+import * as errors from '../../../../lib/common/errors';
 
 suite('awaitItem/http', (): void => {
   suite('/v2', (): void => {

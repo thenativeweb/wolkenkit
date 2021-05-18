@@ -1,9 +1,9 @@
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { AggregatesService } from './AggregatesService';
-import { errors } from '../errors';
 import { GetAggregatesService } from './types/GetAggregatesService';
 import { Repository } from '../domain/Repository';
 import { State } from '../elements/State';
+import * as errors from '../errors';
 
 const getAggregatesService: GetAggregatesService = function ({ repository }: {
   repository: Repository;

@@ -1,6 +1,5 @@
 import { Application } from '../application/Application';
 import { ClientService } from '../services/ClientService';
-import { errors } from '../errors';
 import { flaschenpost } from 'flaschenpost';
 import { getLoggerService } from '../services/getLoggerService';
 import { LoggerService } from '../services/LoggerService';
@@ -10,6 +9,7 @@ import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandl
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../utils/logging/withLogMetadata';
 import { pipeline, Readable, Transform } from 'stream';
+import * as errors from '../errors';
 
 const logger = flaschenpost.getLogger();
 

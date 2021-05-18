@@ -1,5 +1,4 @@
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
-import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
@@ -9,6 +8,7 @@ import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { v4 } from 'uuid';
+import * as errors from '../../../common/errors';
 
 class InMemoryPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;

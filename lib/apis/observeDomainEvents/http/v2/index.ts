@@ -2,7 +2,6 @@ import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import { errors } from '../../../../common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
@@ -17,6 +16,7 @@ import { SpecializedEventEmitter } from '../../../../common/utils/events/Special
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import * as errors from '../../../../common/errors';
 
 const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 

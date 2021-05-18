@@ -1,5 +1,4 @@
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { isCustomError } from 'defekt';
@@ -11,6 +10,7 @@ import { validateFlowNames } from '../../../../common/validators/validateFlowNam
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -104,7 +104,7 @@ const postPerformReplay = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ContentTypeMismatch.code: {

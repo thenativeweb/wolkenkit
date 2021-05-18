@@ -1,9 +1,9 @@
-import { errors } from '../../../common/errors';
 import { LockMetadata } from '../LockMetadata';
 import { PassThrough } from 'stream';
 import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { defekt, isCustomError } from 'defekt';
+import * as errors from '../../../common/errors';
 
 interface Issue {
   type: 'action' | 'issue' | 'error';
@@ -11,9 +11,9 @@ interface Issue {
   data?: any;
 }
 
-const observerErrors = defekt({
-  ObserverError: {}
-});
+const observerErrors = {
+  ObserverError: class ObserverError extends defekt({ code: 'ObserverError' }) {}
+};
 
 class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected queue: PriorityQueueStore<TItem, TItemIdentifier>;

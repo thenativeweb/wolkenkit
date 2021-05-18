@@ -1,6 +1,5 @@
 import { Application } from '../application/Application';
 import { ClientService } from '../services/ClientService';
-import { errors } from '../errors';
 import { getErrorService } from '../services/getErrorService';
 import { getLoggerService } from '../services/getLoggerService';
 import { LoggerService } from '../services/LoggerService';
@@ -9,6 +8,7 @@ import { QueryOptions } from '../elements/QueryOptions';
 import { QueryResultItem } from '../elements/QueryResultItem';
 import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandlerIdentifier';
 import { Value } from 'validate-value';
+import * as errors from '../errors';
 
 const executeValueQueryHandler = async function ({
   application,

@@ -1,9 +1,9 @@
-import { errors } from '../../common/errors';
 import { FileStore } from './FileStore';
 import { FileStoreOptions } from './FileStoreOptions';
 import { FileSystemFileStore } from './FileSystem';
 import { InMemoryFileStore } from './InMemory';
 import { S3FileStore } from './S3';
+import * as errors from '../../common/errors';
 
 const createFileStore = async function (
   options: FileStoreOptions

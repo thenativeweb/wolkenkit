@@ -1,6 +1,6 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
 import { QueryHandlerIdentifier } from '../elements/QueryHandlerIdentifier';
+import * as errors from '../errors';
 
 const validateQueryHandlerIdentifier = function ({
   queryHandlerIdentifier,

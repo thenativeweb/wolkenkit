@@ -6,12 +6,12 @@ import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainE
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
+import * as errors from '../../../../lib/common/errors';
 
 suite('queryDomainEventStore/http', (): void => {
   suite('/v2', (): void => {

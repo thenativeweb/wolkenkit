@@ -1,6 +1,5 @@
 import { Application } from './Application';
 import { ApplicationEnhancer } from '../../tools/ApplicationEnhancer';
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { getApplicationPackageJson } from './getApplicationPackageJson';
 import { getDomainDefinition } from './getDomainDefinition';
@@ -12,6 +11,7 @@ import { getNotificationsDefinition } from './getNotificationsDefinition';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
 import { withSystemDomainEvents } from '../../tools/withSystemDomainEvents';
+import * as errors from '../errors';
 
 const loadApplication = async function ({ applicationDirectory }: {
   applicationDirectory: string;

@@ -2,10 +2,10 @@ import { Aggregate } from '../../../../lib/common/elements/Aggregate';
 import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { State } from '../../../../lib/common/elements/State';
 import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateAggregateDefinition } from '../../../../lib/common/validators/validateAggregateDefinition';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateAggregateDefinition', (): void => {
   /* eslint-disable @typescript-eslint/no-extraneous-class, @typescript-eslint/no-useless-constructor */

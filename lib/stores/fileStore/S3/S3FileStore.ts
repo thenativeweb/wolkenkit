@@ -1,11 +1,11 @@
 import { Client } from 'minio';
-import { errors } from '../../../common/errors';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { Readable } from 'stream';
 import { S3FileStoreOptions } from './S3FileStoreOptions';
 import streamToString from 'stream-to-string';
+import * as errors from '../../../common/errors';
 
 class S3FileStore implements FileStore {
   protected client: Client;
