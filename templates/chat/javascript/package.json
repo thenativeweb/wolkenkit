@@ -4,7 +4,7 @@
   "description": "",
   "dependencies": {
     "mongodb": "3.6.4",
-    "processenv": "3.0.3"
+    "processenv": "3.0.5"
   },
   "devDependencies": {
     "assertthat": "6.0.0",
