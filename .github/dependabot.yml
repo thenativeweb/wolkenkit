@@ -18,3 +18,245 @@ updates:
   commit-message:
     prefix: fix
     prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/blank/javascript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/blank/typescript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/chat/javascript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/chat/typescript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/chat-simplified/javascript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: npm
+  directory: "/templates/chat-simplified/typescript"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mariadb"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-minio"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mongodb"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mysql"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-nodejs"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-postgres"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-redis"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-sqlserver"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+  - dotKuro
+  - goloroden
+  - strangedev
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  commit-message:
+    prefix: fix
