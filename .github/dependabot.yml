@@ -145,7 +145,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -161,7 +160,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -177,7 +175,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -193,7 +190,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -209,7 +205,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -225,7 +220,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -241,7 +235,6 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
 
@@ -257,6 +250,5 @@ updates:
   - yeldiRium
   labels:
   - Dependencies
-  versioning-strategy: increase
   commit-message:
     prefix: fix
