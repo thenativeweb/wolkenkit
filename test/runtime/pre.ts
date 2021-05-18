@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import * as errors from '../../lib/common/errors';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
+import * as errors from '../../lib/common/errors';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async function (): Promise<void> {
@@ -13,7 +13,7 @@ import shell from 'shelljs';
     const { code, stdout, stderr } = shell.exec('npx roboter build', { cwd: path.join(__dirname, '..', '..') });
 
     if (code !== 0) {
-      throw new errors.CompilationFailed('Failed to build wolkenkit.', { data: { stdout, stderr }});
+      throw new errors.CompilationFailed({ message: 'Failed to build wolkenkit.', data: { stdout, stderr }});
     }
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
