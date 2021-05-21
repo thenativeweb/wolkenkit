@@ -3,16 +3,16 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
-    "@types/mongodb": "3.6.8",
-    "mongodb": "3.6.4",
-    "processenv": "3.0.4"
+    "@types/mongodb": "3.6.14",
+    "mongodb": "3.6.7",
+    "processenv": "3.0.5"
   },
   "devDependencies": {
-    "@types/mocha": "8.2.1",
+    "@types/mocha": "8.2.2",
     "@types/uuid": "8.3.0",
-    "assertthat": "6.0.0",
-    "mocha": "8.3.0",
-    "run-script-os": "1.1.5",
+    "assertthat": "6.2.0",
+    "mocha": "8.4.0",
+    "run-script-os": "1.1.6",
     "ts-node": "9.1.1",
     "uuid": "8.3.2"
   },
