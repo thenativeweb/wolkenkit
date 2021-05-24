@@ -161,7 +161,7 @@
     "express": "4.17.1",
     "flaschenpost": "5.0.33",
     "get-cors-origin": "4.0.15",
-    "get-graphql-from-jsonschema": "7.0.5",
+    "get-graphql-from-jsonschema": "8.0.1",
     "graphql": "15.5.0",
     "helmet": "4.6.0",
     "ioredis": "4.27.3",
