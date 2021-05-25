@@ -9,14 +9,14 @@ const parseView = function ({ viewDefinition }: {
   viewDefinition: any;
 }): Result<View<any>, errors.ViewDefinitionMalformed> {
   if (!isObjectLike(viewDefinition)) {
-    throw new errors.ViewDefinitionMalformed(`View handler is not an object.`);
+    return error(new errors.ViewDefinitionMalformed(`View handler is not an object.`));
   }
 
   if (isUndefined(viewDefinition.queryHandlers)) {
-    throw new errors.ViewDefinitionMalformed(`Object 'queryHandlers' is missing.`);
+    return error(new errors.ViewDefinitionMalformed(`Object 'queryHandlers' is missing.`));
   }
   if (!isObjectLike(viewDefinition.queryHandlers)) {
-    throw new errors.ViewDefinitionMalformed(`Property 'queryHandlers' is not an object.`);
+    return error(new errors.ViewDefinitionMalformed(`Property 'queryHandlers' is not an object.`));
   }
 
   for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
@@ -29,7 +29,7 @@ const parseView = function ({ viewDefinition }: {
 
   if (!isUndefined(viewDefinition.notificationSubscribers)) {
     if (!isObjectLike(viewDefinition.notificationSubscribers)) {
-      throw new errors.ViewDefinitionMalformed(`Property 'notificationSubscribers' is not an object.`);
+      return error(new errors.ViewDefinitionMalformed(`Property 'notificationSubscribers' is not an object.`));
     }
 
     for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
@@ -43,12 +43,12 @@ const parseView = function ({ viewDefinition }: {
 
   if (!isUndefined(viewDefinition.enhancers)) {
     if (!isArray(viewDefinition.enhancers)) {
-      throw new errors.ViewDefinitionMalformed(`Property 'enhancers' is not an array.`);
+      return error(new errors.ViewDefinitionMalformed(`Property 'enhancers' is not an array.`));
     }
 
     for (const [ index, enhancer ] of viewDefinition.enhancers.entries()) {
       if (!isFunction(enhancer)) {
-        throw new errors.ViewDefinitionMalformed(`View enhancer at index '${index}' is not a function.`);
+        return error(new errors.ViewDefinitionMalformed(`View enhancer at index '${index}' is not a function.`));
       }
     }
   }

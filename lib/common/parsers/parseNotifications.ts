@@ -8,7 +8,7 @@ const parseNotifications = function ({ notificationsDefinition }: {
   notificationsDefinition: any;
 }): Result<Notifications<any>, errors.NotificationsDefinitionMalformed> {
   if (!isObjectLike(notificationsDefinition)) {
-    throw new errors.NotificationsDefinitionMalformed('Notifications definition is not an object.');
+    return error(new errors.NotificationsDefinitionMalformed('Notifications definition is not an object.'));
   }
 
   for (const [ notificationHandlerName, notificationHandler ] of Object.entries(notificationsDefinition)) {
