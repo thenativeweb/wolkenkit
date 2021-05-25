@@ -4,8 +4,8 @@ import { FlowEnhancer } from '../../tools/FlowEnhancer';
 import { FlowsDefinition } from './FlowsDefinition';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
-import path from 'path';
 import { parseFlow } from '../parsers/parseFlow';
+import path from 'path';
 import * as errors from '../errors';
 
 const getFlowsDefinition = async function ({ flowsDirectory }: {

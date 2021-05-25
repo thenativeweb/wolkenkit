@@ -4,7 +4,7 @@ import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { keepRenewingLock } from './keepRenewingLock';
-import { Parser} from 'validate-value';
+import { Parser } from 'validate-value';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';

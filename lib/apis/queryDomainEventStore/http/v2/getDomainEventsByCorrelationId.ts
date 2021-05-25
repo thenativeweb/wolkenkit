@@ -8,7 +8,6 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import * as errors from '../../../../common/errors';
-import { queryStream } from '../../../queryView/http/v2/queryStream';
 
 const logger = flaschenpost.getLogger();
 

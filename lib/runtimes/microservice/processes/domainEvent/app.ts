@@ -16,7 +16,7 @@ import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrate
 import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { Notification } from '../../../../common/elements/Notification';
-import { parse, Parser } from 'validate-value';
+import { Parser } from 'validate-value';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
