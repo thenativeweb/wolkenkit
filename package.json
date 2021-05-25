@@ -137,7 +137,7 @@
     "@types/lodash": "4.14.169",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.7",
-    "@types/mongodb": "3.6.12",
+    "@types/mongodb": "3.6.16",
     "@types/mssql": "6.0.8",
     "@types/mysql": "2.15.18",
     "@types/node": "15.3.0",
