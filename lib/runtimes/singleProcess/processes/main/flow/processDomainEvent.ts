@@ -15,13 +15,15 @@ import { getLoggerService } from '../../../../../common/services/getLoggerServic
 import { getNotificationService } from '../../../../../common/services/getNotificationService';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../../stores/lockStore/LockStore';
+import { Parser } from 'validate-value';
 import { PerformReplay } from '../../../../../common/domain/PerformReplay';
 import { Repository } from '../../../../../common/domain/Repository';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../../common/utils/logging/withLogMetadata';
 import * as errors from '../../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
+
+const domainEventParser = new Parser(getDomainEventSchema());
 
 const processDomainEvent = async function ({
   application,
@@ -49,11 +51,12 @@ const processDomainEvent = async function ({
   );
 
   try {
-    try {
-      new Value(getDomainEventSchema()).validate(domainEvent, { valueName: 'domainEvent' });
-    } catch (ex: unknown) {
-      throw new errors.DomainEventMalformed((ex as Error).message);
-    }
+    domainEventParser.parse(
+      domainEvent,
+      { valueName: 'domainEvent' }
+    ).unwrapOrThrow(
+      (err): Error => new errors.DomainEventMalformed(err.message)
+    );
 
     if (!(flowName in application.flows)) {
       throw new errors.FlowNotFound(`Received a domain event for unknown flow '${flowName}'.`);

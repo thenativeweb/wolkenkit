@@ -2,7 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getCommandsDescriptionSchema } from '../../../../common/schemas/getCommandsDescriptionSchema';
-import { Value } from 'validate-value';
+import { Parser } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -22,7 +22,7 @@ const getDescription = {
   getHandler ({ application }: {
     application: Application;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(getDescription.response.body);
+    const responseBodyParser = new Parser(getDescription.response.body);
 
     const applicationDescription = getApplicationDescription({ application });
 
@@ -30,7 +30,10 @@ const getDescription = {
       try {
         const response = applicationDescription.commands;
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.send(response);
       } catch (ex: unknown) {

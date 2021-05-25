@@ -2,8 +2,8 @@ import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { exists } from '../utils/fs/exists';
 import { InfrastructureDefinition } from './InfrastructureDefinition';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseInfrastructureDefinition } from '../parsers/parseInfrastructureDefinition';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateInfrastructureDefinition } from '../validators/validateInfrastructureDefinition';
 import * as errors from '../errors';
 
 const getInfrastructureDefinition = async function ({ infrastructureDirectory }: {
@@ -29,13 +29,9 @@ const getInfrastructureDefinition = async function ({ infrastructureDirectory }:
     throw new errors.FileNotFound(`No infrastructure definition in '<app>/build/server/infrastructure' found.`);
   }
 
-  try {
-    validateInfrastructureDefinition({ infrastructureDefinition });
-  } catch (ex: unknown) {
-    throw new errors.InfrastructureDefinitionMalformed(`Infrastructure definition '<app>/build/server/infrastructure' is malformed: ${(ex as Error).message}`);
-  }
-
-  return infrastructureDefinition;
+  return parseInfrastructureDefinition({ infrastructureDefinition }).unwrapOrThrow(
+    (err): Error => new errors.InfrastructureDefinitionMalformed(`Infrastructure definition '<app>/build/server/infrastructure' is malformed: ${err.message}`)
+  );
 };
 
 export { getInfrastructureDefinition };

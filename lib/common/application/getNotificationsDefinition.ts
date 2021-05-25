@@ -2,8 +2,8 @@ import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { exists } from '../utils/fs/exists';
 import { isErrnoException } from '../utils/isErrnoException';
 import { Notifications } from '../elements/Notifications';
+import { parseNotifications } from '../parsers/parseNotifications';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateNotificationsDefinition } from '../validators/validateNotificationsDefinition';
 import * as errors from '../errors';
 
 const getNotificationsDefinition = async function ({ notificationsDirectory }: {
@@ -29,13 +29,9 @@ const getNotificationsDefinition = async function ({ notificationsDirectory }: {
     throw new errors.FileNotFound(`No notifications definition in '<app>/build/server/notifications' found.`);
   }
 
-  try {
-    validateNotificationsDefinition({ notificationsDefinition });
-  } catch (ex: unknown) {
-    throw new errors.NotificationsDefinitionMalformed(`Notifications definition '<app>/build/server/notifications' is malformed: ${(ex as Error).message}`);
-  }
-
-  return notificationsDefinition;
+  return parseNotifications({ notificationsDefinition }).unwrapOrThrow(
+    (err): Error => new errors.NotificationsDefinitionMalformed(`Notifications definition '<app>/build/server/notifications' is malformed: ${err.message}`)
+  );
 };
 
 export { getNotificationsDefinition };

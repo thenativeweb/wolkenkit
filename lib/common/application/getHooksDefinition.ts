@@ -2,8 +2,8 @@ import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { exists } from '../utils/fs/exists';
 import { Hooks } from '../elements/Hooks';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseHooks } from '../parsers/parseHooks';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateHooksDefinition } from '../validators/validateHooksDefinition';
 import * as errors from '../errors';
 
 const getHooksDefinition = async function ({ hooksDirectory }: {
@@ -29,13 +29,9 @@ const getHooksDefinition = async function ({ hooksDirectory }: {
     throw new errors.FileNotFound(`No hooks definition in '<app>/build/server/hooks' found.`);
   }
 
-  try {
-    validateHooksDefinition({ hooksDefinition });
-  } catch (ex: unknown) {
-    throw new errors.HooksDefinitionMalformed(`Hooks definition '<app>/build/server/hooks' is malformed: ${(ex as Error).message}`);
-  }
-
-  return hooksDefinition;
+  return parseHooks({ hooksDefinition }).unwrapOrThrow(
+    (err): Error => new errors.HooksDefinitionMalformed(`Hooks definition '<app>/build/server/hooks' is malformed: ${err.message}`)
+  );
 };
 
 export { getHooksDefinition };
