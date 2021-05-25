@@ -6,8 +6,8 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -49,16 +49,17 @@ const postAddFile = {
     application: Application;
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
-    const requestHeadersSchema = new Value(postAddFile.request.headers),
-          responseBodySchema = new Value(postAddFile.response.body);
+    const requestHeadersParser = new Parser(postAddFile.request.headers),
+          responseBodyParser = new Parser(postAddFile.response.body);
 
     return async function (req, res): Promise<any> {
       try {
-        try {
-          requestHeadersSchema.validate(req.headers, { valueName: 'requestHeaders' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        requestHeadersParser.parse(
+          req.headers,
+          { valueName: 'requestHeaders' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         let fileAddMetadata = {
@@ -102,7 +103,10 @@ const postAddFile = {
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {

@@ -3,8 +3,8 @@ import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -36,18 +36,19 @@ const getSnapshot = {
   }: {
     domainEventStore: DomainEventStore;
   }): WolkenkitRequestHandler {
-    const querySchema = new Value(getSnapshot.request.query),
-          responseBodySchema = new Value(getSnapshot.response.body);
+    const queryParser = new Parser(getSnapshot.request.query),
+          responseBodyParser = new Parser(getSnapshot.response.body);
 
     return async function (req, res): Promise<any> {
       try {
         const { aggregateIdentifier } = req.query;
 
-        try {
-          querySchema.validate(req.query, { valueName: 'requestQuery' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        queryParser.parse(
+          req.query,
+          { valueName: 'requestQuery' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -55,7 +56,10 @@ const getSnapshot = {
           throw new errors.SnapshotNotFound();
         }
 
-        responseBodySchema.validate(snapshot, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          snapshot,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.json(snapshot);
       } catch (ex: unknown) {

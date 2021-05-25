@@ -4,8 +4,8 @@ import { DomainDefinition } from './DomainDefinition';
 import { exists } from '../utils/fs/exists';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseAggregate } from '../parsers/parseAggregate';
 import path from 'path';
-import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
 import * as errors from '../errors';
 
 const getDomainDefinition = async function ({ domainDirectory }: {
@@ -60,20 +60,18 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);
       }
 
-      try {
-        validateAggregateDefinition({
-          aggregateDefinition: rawAggregate
-        });
-      } catch (ex: unknown) {
-        throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/server/domain/${contextName}/${aggregateName}' is malformed: ${(ex as Error).message}`);
-      }
+      const aggregate = parseAggregate({
+        aggregate: rawAggregate
+      }).unwrapOrThrow(
+        (err): Error => new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/server/domain/${contextName}/${aggregateName}' is malformed: ${err.message}`)
+      );
 
       const aggregateEnhancers = (rawAggregate.enhancers || []) as AggregateEnhancer[];
 
-      const enhancedAggregateDefinition = aggregateEnhancers.reduce(
+      const enhancedAggregateDefinition: AggregateDefinition = aggregateEnhancers.reduce(
         (aggregateDefinition, aggregateEnhancer): AggregateDefinition =>
           aggregateEnhancer(aggregateDefinition),
-        rawAggregate
+        aggregate
       );
 
       domainDefinition[contextName][aggregateName] = enhancedAggregateDefinition;

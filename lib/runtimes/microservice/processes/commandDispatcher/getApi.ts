@@ -9,10 +9,10 @@ import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/hand
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnCancelCommand } from '../../../../apis/handleCommandWithMetadata/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
-import { Value } from 'validate-value';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
@@ -39,13 +39,18 @@ const getApi = async function ({
     application
   });
 
+  const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
+
   const { api: awaitCommandWithMetadataApi } = await getAwaitCommandWithMetadataApi<CommandWithMetadata<CommandData>>({
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
     newItemSubscriber: newCommandSubscriber,
     newItemSubscriberChannel: newCommandPubSubChannel,
     validateOutgoingItem ({ item }: { item: any }): void {
-      new Value(getCommandWithMetadataSchema()).validate(item, { valueName: 'command' });
+      commandWithMetadataParser.parse(
+        item,
+        { valueName: 'command' }
+      ).unwrapOrThrow();
       validateCommandWithMetadata({ application, command: item });
     }
   });
