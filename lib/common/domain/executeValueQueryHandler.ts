@@ -3,11 +3,11 @@ import { ClientService } from '../services/ClientService';
 import { getErrorService } from '../services/getErrorService';
 import { getLoggerService } from '../services/getLoggerService';
 import { LoggerService } from '../services/LoggerService';
+import { Parser } from 'validate-value';
 import { QueryHandlerIdentifier } from '../elements/QueryHandlerIdentifier';
 import { QueryOptions } from '../elements/QueryOptions';
 import { QueryResultItem } from '../elements/QueryResultItem';
 import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandlerIdentifier';
-import { Value } from 'validate-value';
 import * as errors from '../errors';
 
 const executeValueQueryHandler = async function ({
@@ -32,14 +32,15 @@ const executeValueQueryHandler = async function ({
     throw new errors.QueryHandlerTypeMismatch();
   }
 
-  const optionsSchema = new Value(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
-        resultSchema = new Value(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
+  const optionsParser = new Parser(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
+        resultParser = new Parser(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
 
-  try {
-    optionsSchema.validate(options, { valueName: 'queryHandlerOptions' });
-  } catch (ex: unknown) {
-    throw new errors.QueryOptionsInvalid((ex as Error).message);
-  }
+  optionsParser.parse(
+    options,
+    { valueName: 'queryHandlerOptions' }
+  ).unwrapOrThrow(
+    (err): Error => new errors.QueryOptionsInvalid(err.message)
+  );
 
   const loggerService = services.logger ?? getLoggerService({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
@@ -62,11 +63,12 @@ const executeValueQueryHandler = async function ({
     throw new errors.QueryNotAuthorized();
   }
 
-  try {
-    resultSchema.validate(result, { valueName: 'result' });
-  } catch (ex: unknown) {
-    throw new errors.QueryResultInvalid((ex as Error).message);
-  }
+  resultParser.parse(
+    result,
+    { valueName: 'result' }
+  ).unwrapOrThrow(
+    (err): Error => new errors.QueryResultInvalid(err.message)
+  );
 
   return result;
 };

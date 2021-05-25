@@ -3,10 +3,10 @@ import { ClientService } from '../services/ClientService';
 import { flaschenpost } from 'flaschenpost';
 import { getLoggerService } from '../services/getLoggerService';
 import { LoggerService } from '../services/LoggerService';
+import { Parser } from 'validate-value';
 import { QueryHandlerIdentifier } from '../elements/QueryHandlerIdentifier';
 import { QueryOptions } from '../elements/QueryOptions';
 import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandlerIdentifier';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../utils/logging/withLogMetadata';
 import { pipeline, Readable, Transform } from 'stream';
 import * as errors from '../errors';
@@ -35,14 +35,15 @@ const executeStreamQueryHandler = async function ({
     throw new errors.QueryHandlerTypeMismatch();
   }
 
-  const optionsSchema = new Value(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
-        resultItemSchema = new Value(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
+  const optionsParser = new Parser(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
+        resultItemParser = new Parser(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
 
-  try {
-    optionsSchema.validate(options, { valueName: 'queryHandlerOptions' });
-  } catch (ex: unknown) {
-    throw new errors.QueryOptionsInvalid((ex as Error).message);
-  }
+  optionsParser.parse(
+    options,
+    { valueName: 'queryHandlerOptions' }
+  ).unwrapOrThrow(
+    (err): Error => new errors.QueryOptionsInvalid(err.message)
+  );
 
   const loggerService = services.logger ?? getLoggerService({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
@@ -66,10 +67,13 @@ const executeStreamQueryHandler = async function ({
         return callback(null);
       }
 
-      try {
-        resultItemSchema.validate(resultItem, { valueName: 'resultItem' });
-      } catch (ex: unknown) {
-        const error = new errors.QueryResultInvalid((ex as Error).message);
+      const parseResult = resultItemParser.parse(
+        resultItem,
+        { valueName: 'resultItem' }
+      );
+
+      if (parseResult.hasError()) {
+        const error = new errors.QueryResultInvalid(parseResult.error.message);
 
         logger.warn(
           `An invalid item was omitted from a stream query handler's response.`,
