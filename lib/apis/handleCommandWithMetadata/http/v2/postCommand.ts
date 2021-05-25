@@ -4,10 +4,10 @@ import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { isCustomError } from 'defekt';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -38,8 +38,8 @@ const postCommand = {
     onReceiveCommand: OnReceiveCommand;
     application: Application;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postCommand.request.body),
-          responseBodySchema = new Value(postCommand.response.body);
+    const requestBodyParser = new Parser(postCommand.request.body),
+          responseBodyParser = new Parser(postCommand.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -48,11 +48,12 @@ const postCommand = {
           req
         });
 
-        try {
-          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.CommandMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          req.body,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.CommandMalformed(err.message)
+        );
 
         const command = new CommandWithMetadata(req.body);
 
@@ -67,7 +68,10 @@ const postCommand = {
 
         const response = { id: command.id };
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {

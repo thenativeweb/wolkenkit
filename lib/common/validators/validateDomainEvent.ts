@@ -1,7 +1,7 @@
 import { Application } from '../application/Application';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
-import { Value } from 'validate-value';
+import { parse } from 'validate-value';
 import * as errors from '../errors';
 
 const validateDomainEvent = function <TDomainEventData extends DomainEventData> ({
@@ -38,13 +38,13 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
     return;
   }
 
-  const schemaData = new Value(domainEventHandler.getSchema());
-
-  try {
-    schemaData.validate(domainEventData, { valueName: 'domainEvent.data' });
-  } catch (ex: unknown) {
-    throw new errors.DomainEventMalformed({ message: (ex as Error).message, cause: ex as Error });
-  }
+  parse(
+    domainEventData,
+    domainEventHandler.getSchema(),
+    { valueName: 'domainEvent.data' }
+  ).unwrapOrThrow(
+    (err): Error => new errors.DomainEventMalformed({ message: err.message, cause: err })
+  );
 };
 
 export { validateDomainEvent };

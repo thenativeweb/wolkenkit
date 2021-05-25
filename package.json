@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "4.0.0-internal.108",
+  "version": "4.0.0-internal.111",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
   "contributors": [
     {
@@ -150,12 +150,12 @@
     "axios": "0.21.1",
     "body-parser": "1.19.0",
     "buntstift": "4.0.25",
-    "command-line-interface": "4.0.6",
+    "command-line-interface": "4.0.7",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
     "content-type": "1.0.4",
     "cors": "2.8.5",
-    "defekt": "7.1.2",
+    "defekt": "7.2.0",
     "ejs": "3.1.6",
     "eventemitter2": "6.4.4",
     "express": "4.17.1",
@@ -170,7 +170,7 @@
     "limes": "6.1.3",
     "lodash": "4.17.21",
     "minio": "7.0.18",
-    "mongodb": "3.6.6",
+    "mongodb": "3.6.8",
     "mssql": "7.1.0",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
@@ -189,7 +189,7 @@
     "swagger-ui-express": "4.1.6",
     "untildify": "4.0.0",
     "uuid": "8.3.2",
-    "validate-value": "8.9.17"
+    "validate-value": "9.0.3"
   },
   "devDependencies": {
     "@types/react": "17.0.7",
@@ -198,7 +198,7 @@
     "apollo-client": "2.6.10",
     "apollo-link-http": "1.5.17",
     "apollo-link-ws": "1.0.20",
-    "assertthat": "6.2.2",
+    "assertthat": "6.3.0",
     "graphql-tag": "2.12.4",
     "next": "10.2.0",
     "node-fetch": "2.6.1",
