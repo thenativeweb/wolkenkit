@@ -52,13 +52,11 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
     }
 
-    try {
-      parseView({
-        viewDefinition: rawView
-      });
-    } catch (ex: unknown) {
-      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${(ex as Error).message}`);
-    }
+    parseView({
+      viewDefinition: rawView
+    }).unwrapOrThrow(
+      (err): Error => new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${err.message}`)
+    );
 
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];
 

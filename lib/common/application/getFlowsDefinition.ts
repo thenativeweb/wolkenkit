@@ -50,13 +50,11 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
       throw new errors.FileNotFound(`No flow definition in '<app>/build/server/flows/${flowName}' found.`);
     }
 
-    try {
-      parseFlow({
-        flowDefinition: rawFlow
-      });
-    } catch (ex: unknown) {
-      throw new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/server/flows/${flowName}' is malformed: ${(ex as Error).message}`);
-    }
+    parseFlow({
+      flowDefinition: rawFlow
+    }).unwrapOrThrow(
+      (err): Error => new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/server/flows/${flowName}' is malformed: ${err.message}`)
+    );
 
     const flowEnhancers = (rawFlow.enhancers || []) as FlowEnhancer[];
 
