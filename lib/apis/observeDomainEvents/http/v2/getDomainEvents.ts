@@ -8,13 +8,13 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
 import { Schema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -54,18 +54,19 @@ const getDomainEvents = {
     repository: Repository;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const querySchema = new Value(getDomainEvents.request.query),
-          responseBodySchema = new Value(getDomainEvents.response.body);
+    const queryParser = new Parser(getDomainEvents.request.query),
+          responseBodyParser = new Parser(getDomainEvents.response.body);
 
     const aggregatesService = getAggregatesService({ repository });
 
     return async function (req: Request, res: Response): Promise<void> {
       try {
-        try {
-          querySchema.validate(req.query, { valueName: 'requestQuery' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        queryParser.parse(
+          req.query,
+          { valueName: 'requestQuery' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const domainEventQueue = new PQueue({ concurrency: 1 });
 
@@ -97,7 +98,10 @@ const getDomainEvents = {
               return;
             }
 
-            responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
+            responseBodyParser.parse(
+              domainEvent,
+              { valueName: 'responseBody' }
+            ).unwrapOrThrow();
 
             logger.debug(
               'Publishing domain event to client...',

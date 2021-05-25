@@ -5,7 +5,7 @@ import { FlowsDefinition } from './FlowsDefinition';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
-import { validateFlowDefinition } from '../validators/validateFlowDefinition';
+import { parseFlow } from '../parsers/parseFlow';
 import * as errors from '../errors';
 
 const getFlowsDefinition = async function ({ flowsDirectory }: {
@@ -51,7 +51,7 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
     }
 
     try {
-      validateFlowDefinition({
+      parseFlow({
         flowDefinition: rawFlow
       });
     } catch (ex: unknown) {

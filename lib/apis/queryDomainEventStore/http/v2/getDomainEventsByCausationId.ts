@@ -2,8 +2,8 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -39,16 +39,17 @@ const getDomainEventsByCausationId = {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const querySchema = new Value(getDomainEventsByCausationId.request.query),
-          responseBodySchema = new Value(getDomainEventsByCausationId.response.body);
+    const queryParser = new Parser(getDomainEventsByCausationId.request.query),
+          responseBodyParser = new Parser(getDomainEventsByCausationId.response.body);
 
     return async function (req, res): Promise<any> {
       try {
-        try {
-          querySchema.validate(req.query, { valueName: 'requestQuery' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        queryParser.parse(
+          req.query,
+          { valueName: 'requestQuery' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const causationId = req.query['causation-id'] as string;
 
@@ -58,7 +59,10 @@ const getDomainEventsByCausationId = {
 
         for await (const domainEvent of domainEventStream) {
           try {
-            responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
+            responseBodyParser.parse(
+              domainEvent,
+              { valueName: 'responseBody' }
+            ).unwrapOrThrow();
 
             writeLine({ res, data: domainEvent });
           } catch {

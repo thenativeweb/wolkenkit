@@ -4,7 +4,7 @@ import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateViewDefinition } from '../validators/validateViewDefinition';
+import { parseView } from '../parsers/parseView';
 import { View } from '../elements/View';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
@@ -53,7 +53,7 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
     }
 
     try {
-      validateViewDefinition({
+      parseView({
         viewDefinition: rawView
       });
     } catch (ex: unknown) {

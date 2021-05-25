@@ -1,11 +1,13 @@
-import { validateNotificationSubscriber } from './validateNotificationSubscriber';
-import { validateQueryHandler } from './validateQueryHandler';
+import { parseNotificationSubscriber } from './parseNotificationSubscriber';
+import { parseQueryHandler } from './parseQueryHandler';
+import { View } from '../elements/View';
+import { error, Result, value } from 'defekt';
 import { isArray, isFunction, isObjectLike, isUndefined } from 'lodash';
 import * as errors from '../errors';
 
-const validateViewDefinition = function ({ viewDefinition }: {
+const parseView = function ({ viewDefinition }: {
   viewDefinition: any;
-}): void {
+}): Result<View<any>, errors.ViewDefinitionMalformed> {
   if (!isObjectLike(viewDefinition)) {
     throw new errors.ViewDefinitionMalformed(`View handler is not an object.`);
   }
@@ -18,10 +20,10 @@ const validateViewDefinition = function ({ viewDefinition }: {
   }
 
   for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
-    try {
-      validateQueryHandler({ queryHandler });
-    } catch (ex: unknown) {
-      throw new errors.ViewDefinitionMalformed(`Query handler '${queryName}' is malformed: ${(ex as Error).message}`);
+    const parseResult = parseQueryHandler({ queryHandler });
+
+    if (parseResult.hasError()) {
+      return error(new errors.ViewDefinitionMalformed(`Query handler '${queryName}' is malformed: ${parseResult.error.message}`));
     }
   }
 
@@ -31,10 +33,10 @@ const validateViewDefinition = function ({ viewDefinition }: {
     }
 
     for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
-      try {
-        validateNotificationSubscriber({ notificationSubscriber });
-      } catch (ex: unknown) {
-        throw new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${(ex as Error).message}`);
+      const parseResult = parseNotificationSubscriber({ notificationSubscriber });
+
+      if (parseResult.hasError()) {
+        return error(new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${parseResult.error.message}`));
       }
     }
   }
@@ -50,6 +52,8 @@ const validateViewDefinition = function ({ viewDefinition }: {
       }
     }
   }
+
+  return value(viewDefinition);
 };
 
-export { validateViewDefinition };
+export { parseView };

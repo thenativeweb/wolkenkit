@@ -16,12 +16,12 @@ import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrate
 import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { Notification } from '../../../../common/elements/Notification';
+import { parse, Parser } from 'validate-value';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -95,6 +95,8 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
       )
     );
 
+    const domainEventWithStateParser = new Parser(getDomainEventWithStateSchema());
+
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNewDomainEvents,
       callback (rawDomainEvent: DomainEventWithState<DomainEventData, State>): void {
@@ -106,7 +108,10 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
         );
 
         try {
-          new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
+          domainEventWithStateParser.parse(
+            domainEvent,
+            { valueName: 'domainEvent' }
+          ).unwrapOrThrow();
           validateDomainEventWithState({ domainEvent, application });
         } catch (ex: unknown) {
           logger.error(
