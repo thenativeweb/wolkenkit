@@ -159,7 +159,7 @@
     "ejs": "3.1.6",
     "eventemitter2": "6.4.4",
     "express": "4.17.1",
-    "flaschenpost": "5.0.33",
+    "flaschenpost": "5.0.35",
     "get-cors-origin": "4.0.15",
     "get-graphql-from-jsonschema": "7.0.5",
     "graphql": "15.5.0",
@@ -211,7 +211,7 @@
     "run-script-os": "1.1.6",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.92",
+    "thenativeweb-ux": "5.8.93",
     "wait-for-signals": "1.2.3",
     "ws": "7.4.5"
   },
