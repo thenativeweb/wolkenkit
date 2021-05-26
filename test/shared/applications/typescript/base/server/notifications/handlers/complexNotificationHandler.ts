@@ -10,7 +10,8 @@ const complexNotificationHandler: NotificationHandler<ComplexNotificationDefinit
       properties: {
         message: { type: 'string', minLength: 1 }
       },
-      required: [ 'message' ]
+      required: [ 'message' ],
+      additionalProperties: false
     };
   },
 
@@ -20,7 +21,8 @@ const complexNotificationHandler: NotificationHandler<ComplexNotificationDefinit
       properties: {
         public: { type: 'boolean' }
       },
-      required: [ 'public' ]
+      required: [ 'public' ],
+      additionalProperties: false
     };
   },
 

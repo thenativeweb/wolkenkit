@@ -4,10 +4,10 @@ import { getApplicationDescription } from '../../../../common/application/getApp
 import { getClientService } from '../../../../common/services/getClientService';
 import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { Schema } from '../../../../common/elements/Schema';
 import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { Notification } from '../../../../common/elements/Notification';
 import { ResolverContext } from '../ResolverContext';
+import { Schema } from '../../../../common/elements/Schema';
 import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { validateNotification } from '../../../../common/validators/validateNotification';

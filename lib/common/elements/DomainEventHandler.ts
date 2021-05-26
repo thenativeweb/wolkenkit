@@ -4,8 +4,8 @@ import { ClientService } from '../services/ClientService';
 import { DomainEvent } from './DomainEvent';
 import { DomainEventData } from './DomainEventData';
 import { DomainEventWithState } from './DomainEventWithState';
-import { LoggerService } from '../services/LoggerService';
 import { GraphqlIncompatibleSchema } from './Schema';
+import { LoggerService } from '../services/LoggerService';
 import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
 

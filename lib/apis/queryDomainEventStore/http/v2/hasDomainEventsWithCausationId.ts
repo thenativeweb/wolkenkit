@@ -1,8 +1,8 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';

@@ -1,8 +1,8 @@
 import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
+import { GraphqlIncompatibleSchema } from './Schema';
 import { LoggerService } from '../services/LoggerService';
 import { NotificationDefinition } from './NotificationDefinition';
-import { GraphqlIncompatibleSchema } from './Schema';
 
 export interface NotificationHandler<
   TNotificationDefinition extends NotificationDefinition,

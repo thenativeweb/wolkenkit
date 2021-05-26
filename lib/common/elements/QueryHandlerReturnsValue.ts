@@ -1,10 +1,10 @@
 import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { ErrorService } from '../services/ErrorService';
-import { Schema } from './Schema';
 import { LoggerService } from '../services/LoggerService';
 import { QueryOptions } from './QueryOptions';
 import { QueryResultItem } from './QueryResultItem';
+import { Schema } from './Schema';
 import { TellInfrastructure } from './TellInfrastructure';
 
 export interface QueryHandlerReturnsValue<

@@ -1,10 +1,10 @@
 import { Application } from '../../../../common/application/Application';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';

@@ -7,12 +7,12 @@ import { getAggregatesService } from '../../../../common/services/getAggregatesS
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';

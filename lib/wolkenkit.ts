@@ -35,10 +35,10 @@ import { QueryHandlerReturnsValue } from './common/elements/QueryHandlerReturnsV
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
 import { createSandbox as sandbox } from './common/utils/test/sandbox/createSandbox';
-import { GraphqlIncompatibleSchema, Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
 import { View } from './common/elements/View';
+import { GraphqlIncompatibleSchema, Schema } from './common/elements/Schema';
 
 export {
   Aggregate,

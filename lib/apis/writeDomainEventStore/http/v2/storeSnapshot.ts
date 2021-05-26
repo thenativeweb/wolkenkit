@@ -1,9 +1,9 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';

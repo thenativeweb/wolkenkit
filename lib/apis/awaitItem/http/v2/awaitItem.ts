@@ -1,9 +1,9 @@
 import { flaschenpost } from 'flaschenpost';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
