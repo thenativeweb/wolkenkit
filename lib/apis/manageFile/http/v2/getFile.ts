@@ -6,9 +6,9 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -30,18 +30,15 @@ const getFile = {
     application: Application;
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
+    const uuidParser = new Parser({ type: 'string', format: 'uuid' });
+
     return async function (req, res): Promise<any> {
       try {
         const { id } = req.params;
 
-        try {
-          new Value({
-            type: 'string',
-            format: 'uuid'
-          }).validate(id, { valueName: 'uuid' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        uuidParser.parse(id, { valueName: 'uuid' }).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         const fileMetadata = await fileStore.getMetadata({ id });

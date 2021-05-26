@@ -5,9 +5,9 @@ import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
+import { parse } from 'validate-value';
 import { ResolverContext } from '../ResolverContext';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLBoolean, GraphQLFieldConfig, GraphQLInputObjectType, GraphQLObjectType } from 'graphql';
 import * as errors from '../../../../common/errors';
@@ -44,11 +44,13 @@ const getCancelCommandFieldConfiguration = function ({ application, onCancelComm
     async resolve (source, { commandIdentifier: rawCommandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> {
       const commandIdentifier = addMissingPrototype({ value: rawCommandIdentifier });
 
-      try {
-        new Value(getItemIdentifierSchema()).validate(commandIdentifier, { valueName: 'commandIdentifier' });
-      } catch (ex: unknown) {
-        throw new errors.ItemIdentifierMalformed((ex as Error).message);
-      }
+      parse(
+        commandIdentifier,
+        getItemIdentifierSchema(),
+        { valueName: 'commandIdentifier' }
+      ).unwrapOrThrow(
+        (err): Error => new errors.ItemIdentifierMalformed(err.message)
+      );
       validateItemIdentifier({ itemIdentifier: commandIdentifier, application, itemType: 'command' });
 
       const commandIdentifierWithClient: ItemIdentifierWithClient = {
