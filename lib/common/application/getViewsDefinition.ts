@@ -2,9 +2,9 @@ import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { exists } from '../utils/fs/exists';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseView } from '../parsers/parseView';
 import path from 'path';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateViewDefinition } from '../validators/validateViewDefinition';
 import { View } from '../elements/View';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
@@ -52,13 +52,11 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
     }
 
-    try {
-      validateViewDefinition({
-        viewDefinition: rawView
-      });
-    } catch (ex: unknown) {
-      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${(ex as Error).message}`);
-    }
+    parseView({
+      viewDefinition: rawView
+    }).unwrapOrThrow(
+      (err): Error => new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${err.message}`)
+    );
 
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];
 

@@ -12,10 +12,10 @@ import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Parser } from 'validate-value';
 import { ResolverContext } from '../ResolverContext';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import {
   GraphQLArgumentConfig,
@@ -27,7 +27,7 @@ import {
 import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
-const commandSchema = new Value(getCommandSchema());
+const commandSchema = new Parser(getCommandSchema());
 
 const getIndividualCommandFieldConfiguration = function ({
   application,
@@ -100,11 +100,12 @@ const getIndividualCommandFieldConfiguration = function ({
         data: data === undefined ? {} : cloneDeep(data)
       });
 
-      try {
-        commandSchema.validate(command, { valueName: 'command' });
-      } catch (ex: unknown) {
-        throw new errors.CommandMalformed((ex as Error).message);
-      }
+      commandSchema.parse(
+        command,
+        { valueName: 'command' }
+      ).unwrapOrThrow(
+        (err): Error => new errors.CommandMalformed(err.message)
+      );
       validateCommand({ command, application });
 
       const commandId = v4();

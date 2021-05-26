@@ -1,7 +1,7 @@
 import { ConfigurationDefinition } from './ConfigurationDefinition';
 import { ConfigurationDefinitionItem } from './ConfigurationDefinitionItem';
+import { parse } from 'validate-value';
 import { processenv } from 'processenv';
-import { Value } from 'validate-value';
 
 const fromEnvironmentVariables = async function <TConfiguration extends object> ({ configurationDefinition }: {
   configurationDefinition: ConfigurationDefinition<TConfiguration>;
@@ -12,9 +12,12 @@ const fromEnvironmentVariables = async function <TConfiguration extends object> 
     const definition = rawDefinition as ConfigurationDefinitionItem<any>;
 
     const value = await processenv(definition.environmentVariable, definition.defaultValue);
-    const validator = new Value(definition.schema);
 
-    validator.validate(value, { valueName: key });
+    parse(
+      value,
+      definition.schema,
+      { valueName: key }
+    ).unwrapOrThrow();
 
     if (value === undefined) {
       throw new Error(`Required environment variable '${definition.environmentVariable}' is not set.`);
