@@ -9,11 +9,10 @@ import { getApplicationRoot } from '../../../common/application/getApplicationRo
 import { getConsumerProgressStoreOptionsSchema } from '../../../runtimes/shared/schemas/getConsumerProgressStoreOptionsSchema';
 import { getDomainEventStoreOptionsSchema } from '../../../runtimes/shared/schemas/getDomainEventStoreOptionsSchema';
 import { loadApplication } from '../../../common/application/loadApplication';
+import { parse } from 'validate-value';
+import { parseReplayConfiguration } from './parseReplayConfiguration';
 import { Client as ReplayClient } from '../../../apis/performReplay/http/v2/Client';
-import { ReplayConfiguration } from './ReplayConfiguration';
 import { ReplayOptions } from './ReplayOptions';
-import { validateReplayConfiguration } from './validateReplayConfiguration';
-import { Value } from 'validate-value';
 
 const replayCommand = function (): Command<ReplayOptions> {
   return {
@@ -95,12 +94,16 @@ const replayCommand = function (): Command<ReplayOptions> {
       );
 
       const domainEventStoreOptions = JSON.parse(rawDomainEventStoreOptions) as DomainEventStoreOptions;
-      const domainEventStoreOptionsSchema = new Value(getDomainEventStoreOptionsSchema());
       const consumerProgressStoreOptions = JSON.parse(rawConsumerProgressStoreOptions) as ConsumerProgressStoreOptions;
-      const consumerProgressStoreOptionsSchema = new Value(getConsumerProgressStoreOptionsSchema());
 
-      domainEventStoreOptionsSchema.validate(domainEventStoreOptions);
-      consumerProgressStoreOptionsSchema.validate(consumerProgressStoreOptions);
+      parse(
+        domainEventStoreOptions,
+        getDomainEventStoreOptionsSchema()
+      ).unwrapOrThrow();
+      parse(
+        consumerProgressStoreOptions,
+        getConsumerProgressStoreOptionsSchema()
+      ).unwrapOrThrow();
 
       const domainEventStore = await createDomainEventStore(domainEventStoreOptions);
 
@@ -121,12 +124,11 @@ const replayCommand = function (): Command<ReplayOptions> {
 
         const parsedReplayConfiguration = JSON.parse(rawReplayConfiguration);
 
-        validateReplayConfiguration({
+        const replayConfiguration = parseReplayConfiguration({
           application,
           replayConfiguration: parsedReplayConfiguration
-        });
+        }).unwrapOrThrow();
 
-        const replayConfiguration: ReplayConfiguration = parsedReplayConfiguration;
         const aggregateConfigurationsWithOptionalRevisions: {
           aggregateIdentifier: AggregateIdentifier;
           from?: number;

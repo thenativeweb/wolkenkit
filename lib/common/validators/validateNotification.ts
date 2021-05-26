@@ -1,6 +1,6 @@
 import { Application } from '../application/Application';
 import { Notification } from '../elements/Notification';
-import { Value } from 'validate-value';
+import { parse } from 'validate-value';
 import * as errors from '../errors';
 
 const validateNotification = function ({
@@ -26,15 +26,13 @@ const validateNotification = function ({
 
   if (getDataSchema) {
     const schema = getDataSchema();
-    const value = new Value(schema);
 
-    value.validate(data, { valueName: 'notification.data' });
+    parse(data, schema, { valueName: 'notification.data' }).unwrapOrThrow();
   }
   if (getMetadataSchema) {
     const schema = getMetadataSchema();
-    const value = new Value(schema);
 
-    value.validate(metadata, { valueName: 'notification.metadata' });
+    parse(metadata, schema, { valueName: 'notification.metadata' }).unwrapOrThrow();
   }
 };
 
