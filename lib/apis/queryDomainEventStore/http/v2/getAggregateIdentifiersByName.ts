@@ -2,8 +2,8 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -40,16 +40,17 @@ const getAggregateIdentifiersByName = {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const querySchema = new Value(getAggregateIdentifiersByName.request.query),
-          responseBodySchema = new Value(getAggregateIdentifiersByName.response.body);
+    const queryParser = new Parser(getAggregateIdentifiersByName.request.query),
+          responseBodyParser = new Parser(getAggregateIdentifiersByName.response.body);
 
     return async function (req, res): Promise<any> {
       try {
-        try {
-          querySchema.validate(req.query, { valueName: 'requestQuery' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        queryParser.parse(
+          req.query,
+          { valueName: 'requestQuery' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         res.startStream({ heartbeatInterval });
 
@@ -60,7 +61,10 @@ const getAggregateIdentifiersByName = {
 
         for await (const aggregateIdentifier of aggregateIdentifierStream) {
           try {
-            responseBodySchema.validate(aggregateIdentifier, { valueName: 'responseBody' });
+            responseBodyParser.parse(
+              aggregateIdentifier,
+              { valueName: 'responseBody' }
+            ).unwrapOrThrow();
 
             writeLine({ res, data: aggregateIdentifier });
           } catch {

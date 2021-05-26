@@ -8,10 +8,10 @@ import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { GetAggregateService } from './types/GetAggregateService';
+import { parse } from 'validate-value';
 import { State } from '../elements/State';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { v4 } from 'uuid';
-import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 import * as errors from '../errors';
 
@@ -49,9 +49,12 @@ const getAggregateService: GetAggregateService = function <TState extends State>
 
       if (domainEventHandler.getSchema) {
         const schema = domainEventHandler.getSchema();
-        const value = new Value(schema);
 
-        value.validate(data, { valueName: 'data' });
+        parse(
+          data,
+          schema,
+          { valueName: 'data' }
+        ).unwrapOrThrow();
       }
 
       const domainEvent = new DomainEvent({

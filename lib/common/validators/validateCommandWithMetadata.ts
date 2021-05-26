@@ -1,7 +1,7 @@
 import { Application } from '../application/Application';
 import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
-import { Value } from 'validate-value';
+import { parse } from 'validate-value';
 import * as errors from '../errors';
 
 const validateCommandWithMetadata = function <TCommandData extends CommandData> ({
@@ -38,13 +38,13 @@ const validateCommandWithMetadata = function <TCommandData extends CommandData> 
     return;
   }
 
-  const schemaData = new Value(commandHandler.getSchema());
-
-  try {
-    schemaData.validate(commandData, { valueName: 'command.data' });
-  } catch (ex: unknown) {
-    throw new errors.CommandMalformed({ message: (ex as Error).message, cause: ex as Error });
-  }
+  parse(
+    commandData,
+    commandHandler.getSchema(),
+    { valueName: 'command.data' }
+  ).unwrapOrThrow(
+    (err): Error => new errors.CommandMalformed({ message: err.message, cause: err })
+  );
 };
 
 export { validateCommandWithMetadata };
