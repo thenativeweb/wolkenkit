@@ -1,9 +1,9 @@
 import { flaschenpost } from 'flaschenpost';
 import { isCustomError } from 'defekt';
 import { OnReceiveMessage } from '../../OnReceiveMessage';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -33,8 +33,8 @@ const postMessage = {
   getHandler ({ onReceiveMessage }: {
     onReceiveMessage: OnReceiveMessage;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postMessage.request.body),
-          responseBodySchema = new Value(postMessage.response.body);
+    const requestBodyParser = new Parser(postMessage.request.body),
+          responseBodyParser = new Parser(postMessage.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -43,11 +43,12 @@ const postMessage = {
           req
         });
 
-        try {
-          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          req.body,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const { channel, message } = req.body;
 
@@ -60,7 +61,10 @@ const postMessage = {
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {
