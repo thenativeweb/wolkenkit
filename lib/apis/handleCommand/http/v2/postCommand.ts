@@ -10,9 +10,9 @@ import { Schema } from '../../../../common/elements/Schema';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { parse, Parser } from 'validate-value';
 import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
@@ -55,7 +55,7 @@ const postCommand = {
     onReceiveCommand: OnReceiveCommand;
     application: Application;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(postCommand.response.body);
+    const responseBodyParser = new Parser(postCommand.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -78,11 +78,13 @@ const postCommand = {
           data: req.body
         });
 
-        try {
-          new Value(getCommandSchema()).validate(command, { valueName: 'command' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        parse(
+          command,
+          getCommandSchema(),
+          { valueName: 'command' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         validateCommand({ command, application });
 
@@ -115,7 +117,10 @@ const postCommand = {
           }
         };
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {
