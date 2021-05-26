@@ -12,7 +12,7 @@ import { Parser } from 'validate-value';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
@@ -34,7 +34,7 @@ const getDomainEvents = {
         filter: { type: 'object' }
       },
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400 ],

@@ -6,7 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { isCustomError } from 'defekt';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { validateContentType } from '../../../base/validateContentType';
@@ -48,7 +48,7 @@ const postCommand = {
       },
       required: [ 'id', 'aggregateIdentifier' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
 
   getHandler ({ onReceiveCommand, application }: {

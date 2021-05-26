@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getCorsSchema = function (): Schema {
+const getCorsSchema = function (): GraphqlIncompatibleSchema {
   return {
     anyOf: [
       { type: 'string' },

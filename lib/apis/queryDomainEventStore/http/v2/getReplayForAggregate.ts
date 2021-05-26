@@ -4,7 +4,7 @@ import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventS
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
 import { regex } from '../../../../common/utils/uuid';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -25,7 +25,7 @@ const getReplayForAggregate = {
       },
       required: [],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400 ],

@@ -7,7 +7,7 @@ import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -27,7 +27,7 @@ const postRemoveFile = {
       },
       required: [ 'id' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 401, 404, 415, 500 ],
@@ -36,7 +36,7 @@ const postRemoveFile = {
       properties: {},
       required: [],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
 
   getHandler ({ application, fileStore }: {

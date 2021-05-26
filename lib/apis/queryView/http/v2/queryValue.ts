@@ -5,7 +5,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -22,7 +22,7 @@ const queryValue = {
       type: 'object',
       properties: {},
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 404 ]

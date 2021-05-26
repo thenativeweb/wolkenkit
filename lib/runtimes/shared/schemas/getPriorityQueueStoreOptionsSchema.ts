@@ -1,9 +1,9 @@
 import { getPortSchema } from './getPortSchema';
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
 const portSchema = getPortSchema();
 
-const getPriorityQueueStoreOptionsSchema = function (): Schema {
+const getPriorityQueueStoreOptionsSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'object',
     oneOf: [

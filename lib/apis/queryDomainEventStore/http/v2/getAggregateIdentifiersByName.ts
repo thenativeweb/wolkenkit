@@ -3,7 +3,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -24,7 +24,7 @@ const getAggregateIdentifiersByName = {
       },
       required: [ 'contextName', 'aggregateName' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400 ],

@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getHeartbeatIntervalSchema = function (): Schema {
+const getHeartbeatIntervalSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'integer',
     minimum: 10_000

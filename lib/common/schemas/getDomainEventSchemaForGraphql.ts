@@ -1,7 +1,7 @@
 import { getDomainEventSchema } from './getDomainEventSchema';
-import { GraphqlCompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
-const getDomainEventSchemaForGraphql = function (): GraphqlCompatibleSchema {
+const getDomainEventSchemaForGraphql = function (): Schema {
   const domainEventSchema = getDomainEventSchema();
 
   domainEventSchema.properties!.data = {
@@ -12,7 +12,7 @@ const getDomainEventSchemaForGraphql = function (): GraphqlCompatibleSchema {
   delete (domainEventSchema as any).properties.metadata.properties.initiator.properties.user.properties.claims;
   (domainEventSchema as any).properties!.metadata!.properties!.initiator!.properties!.user!.required = [ 'id' ];
 
-  return domainEventSchema as GraphqlCompatibleSchema;
+  return domainEventSchema as Schema;
 };
 
 export { getDomainEventSchemaForGraphql };

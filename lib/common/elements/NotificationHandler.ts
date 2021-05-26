@@ -2,7 +2,7 @@ import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { LoggerService } from '../services/LoggerService';
 import { NotificationDefinition } from './NotificationDefinition';
-import { Schema } from './Schema';
+import { GraphqlIncompatibleSchema } from './Schema';
 
 export interface NotificationHandler<
   TNotificationDefinition extends NotificationDefinition,
@@ -10,9 +10,9 @@ export interface NotificationHandler<
 > {
   getDocumentation?: () => string;
 
-  getDataSchema?: () => Schema;
+  getDataSchema?: () => GraphqlIncompatibleSchema;
 
-  getMetadataSchema?: () => Schema;
+  getMetadataSchema?: () => GraphqlIncompatibleSchema;
 
   isAuthorized: (data: TNotificationDefinition['data'], metadata: TNotificationDefinition['metadata'], services: {
     client: ClientService;

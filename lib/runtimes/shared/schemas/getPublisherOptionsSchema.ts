@@ -1,11 +1,11 @@
 import { getPortOrSocketSchema } from './getPortOrSocketSchema';
 import { getProtocolSchema } from './getProtocolSchema';
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
 const portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema();
 
-const getPublisherOptionsSchema = function (): Schema {
+const getPublisherOptionsSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'object',
     oneOf: [

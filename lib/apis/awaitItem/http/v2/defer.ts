@@ -3,7 +3,7 @@ import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -25,11 +25,11 @@ const defer = {
       },
       required: [ 'discriminator', 'token', 'priority' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 403, 404, 415 ],
-    body: { type: 'object' } as Schema
+    body: { type: 'object' } as GraphqlIncompatibleSchema
   },
 
   getHandler<TItem extends object> ({

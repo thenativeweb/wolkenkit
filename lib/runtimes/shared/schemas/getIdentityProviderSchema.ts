@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getIdentityProviderSchema = function (): Schema {
+const getIdentityProviderSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'array',
     items: {

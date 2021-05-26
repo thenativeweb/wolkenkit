@@ -1,9 +1,9 @@
-import { Schema } from '../elements/Schema';
+import { GraphqlIncompatibleSchema } from '../elements/Schema';
 
 export interface QueryDescription {
   documentation?: string;
 
-  optionsSchema?: Schema;
+  optionsSchema?: GraphqlIncompatibleSchema;
 
-  itemSchema?: Schema;
+  itemSchema?: GraphqlIncompatibleSchema;
 }

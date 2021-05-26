@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getSnapshotStrategySchema = function (): Schema {
+const getSnapshotStrategySchema = function (): GraphqlIncompatibleSchema {
   return {
     anyOf: [
       {

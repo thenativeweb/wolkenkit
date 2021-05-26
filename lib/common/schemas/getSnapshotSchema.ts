@@ -1,7 +1,7 @@
 import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
-import { Schema } from '../elements/Schema';
+import { GraphqlIncompatibleSchema } from '../elements/Schema';
 
-const getSnapshotSchema = function (): Schema {
+const getSnapshotSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'object',
     properties: {

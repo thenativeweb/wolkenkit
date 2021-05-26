@@ -3,7 +3,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -21,7 +21,7 @@ const storeSnapshot = {
   response: {
     statusCodes: [ 200, 400, 415 ],
 
-    body: { type: 'object' } as Schema
+    body: { type: 'object' } as GraphqlIncompatibleSchema
   },
 
   getHandler ({

@@ -1,6 +1,6 @@
-import { Schema } from '../elements/Schema';
+import { GraphqlIncompatibleSchema } from '../elements/Schema';
 
-const getNotificationsDescriptionSchema = function (): Schema {
+const getNotificationsDescriptionSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'object',
     patternProperties: {

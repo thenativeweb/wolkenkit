@@ -6,7 +6,7 @@ import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventS
 import { isCustomError } from 'defekt';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
@@ -33,11 +33,11 @@ const postDomainEvent = {
       },
       required: [ 'domainEvent' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
-    body: { type: 'object' } as Schema
+    body: { type: 'object' } as GraphqlIncompatibleSchema
   },
 
   getHandler ({ onReceiveDomainEvent, application }: {

@@ -4,7 +4,7 @@ import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggr
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -23,7 +23,7 @@ const getSnapshot = {
       },
       required: [ 'aggregateIdentifier' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 404 ],

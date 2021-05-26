@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getPortSchema = function (): Schema {
+const getPortSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'integer',
     minimum: 1,

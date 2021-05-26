@@ -1,7 +1,7 @@
 import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { ErrorService } from '../services/ErrorService';
-import { GraphqlCompatibleSchema } from './Schema';
+import { Schema } from './Schema';
 import { LoggerService } from '../services/LoggerService';
 import { QueryOptions } from './QueryOptions';
 import { QueryResultItem } from './QueryResultItem';
@@ -23,9 +23,9 @@ export interface QueryHandlerReturnsValue<
 
   getDocumentation?: () => string;
 
-  getOptionsSchema?: () => GraphqlCompatibleSchema;
+  getOptionsSchema?: () => Schema;
 
-  getResultItemSchema?: () => GraphqlCompatibleSchema;
+  getResultItemSchema?: () => Schema;
 
   isAuthorized: (databaseViewItem: TQueryResultItem, services: {
     client: ClientService;

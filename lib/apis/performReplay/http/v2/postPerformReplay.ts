@@ -4,7 +4,7 @@ import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggr
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
@@ -43,7 +43,7 @@ const postPerformReplay = {
       },
       required: [ 'aggregates' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
@@ -52,7 +52,7 @@ const postPerformReplay = {
       properties: {},
       required: [],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
 
   getHandler ({ performReplay, application }: {

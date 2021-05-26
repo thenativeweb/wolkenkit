@@ -1,6 +1,6 @@
-import { Schema } from '../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
 
-const getProtocolSchema = function (): Schema {
+const getProtocolSchema = function (): GraphqlIncompatibleSchema {
   return {
     type: 'string',
     enum: [ 'http', 'https' ]

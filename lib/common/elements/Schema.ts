@@ -1,4 +1,4 @@
-import { TranslatableJsonSchema as GraphqlCompatibleSchema } from 'get-graphql-from-jsonschema/build/lib/Types/TranslatableJsonSchema';
-import { JSONSchema7 as Schema } from 'json-schema';
+import { JSONSchema7 as GraphqlIncompatibleSchema } from 'json-schema';
+import { TranslatableJsonSchema as Schema } from 'get-graphql-from-jsonschema/build/lib/Types/TranslatableJsonSchema';
 
-export { GraphqlCompatibleSchema, Schema };
+export { Schema, GraphqlIncompatibleSchema };

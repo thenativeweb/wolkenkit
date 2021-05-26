@@ -5,7 +5,7 @@ import { getCommandWithMetadataSchema } from '../../../../common/schemas/getComm
 import { isCustomError } from 'defekt';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Parser } from 'validate-value';
-import { Schema } from '../../../../common/elements/Schema';
+import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
@@ -31,7 +31,7 @@ const postCommand = {
       },
       required: [ 'id' ],
       additionalProperties: false
-    } as Schema
+    } as GraphqlIncompatibleSchema
   },
 
   getHandler ({ onReceiveCommand, application }: {
