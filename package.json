@@ -213,7 +213,7 @@
     "temp": "0.9.4",
     "thenativeweb-ux": "5.8.93",
     "wait-for-signals": "1.2.3",
-    "ws": "7.4.5"
+    "ws": "7.4.6"
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",
