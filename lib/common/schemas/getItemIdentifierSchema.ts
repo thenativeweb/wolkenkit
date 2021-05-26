@@ -1,7 +1,7 @@
 import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
-import { Schema } from '../elements/Schema';
+import { GraphqlCompatibleSchema } from '../elements/Schema';
 
-const getItemIdentifierSchema = function (): Schema {
+const getItemIdentifierSchema = function (): GraphqlCompatibleSchema {
   return {
     type: 'object',
     properties: {

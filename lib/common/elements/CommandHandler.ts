@@ -5,10 +5,10 @@ import { ClientService } from '../services/ClientService';
 import { CommandData } from './CommandData';
 import { CommandWithMetadata } from './CommandWithMetadata';
 import { ErrorService } from '../services/ErrorService';
+import { GraphqlCompatibleSchema } from './Schema';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
 import { NotificationService } from '../services/NotificationService';
-import { Schema } from './Schema';
 import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
 
@@ -19,7 +19,7 @@ export interface CommandHandler<
 > {
   getDocumentation?: () => string;
 
-  getSchema?: () => Schema;
+  getSchema?: () => GraphqlCompatibleSchema;
 
   isAuthorized: (state: TState, command: CommandWithMetadata<TCommandData>, services: {
     aggregates: AggregatesService;

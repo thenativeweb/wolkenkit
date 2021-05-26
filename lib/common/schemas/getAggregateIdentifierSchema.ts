@@ -1,6 +1,6 @@
-import { Schema } from '../elements/Schema';
+import { GraphqlCompatibleSchema } from '../elements/Schema';
 
-const getAggregateIdentifierSchema = function (): Schema {
+const getAggregateIdentifierSchema = function (): GraphqlCompatibleSchema {
   return {
     type: 'object',
     properties: {
