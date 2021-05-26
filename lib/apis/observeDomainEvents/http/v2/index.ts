@@ -10,15 +10,15 @@ import { getDomainEvents } from './getDomainEvents';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { IdentityProvider } from 'limes';
+import { Parser } from 'validate-value';
 import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
-import { Value } from 'validate-value';
 import * as errors from '../../../../common/errors';
 
-const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
+const domainEventWithStateParser = new Parser(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
@@ -72,11 +72,12 @@ const getV2 = async function ({
   );
 
   const publishDomainEvent: PublishDomainEvent = function ({ domainEvent }): void {
-    try {
-      domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
-    } catch (ex: unknown) {
-      throw new errors.DomainEventMalformed((ex as Error).message);
-    }
+    domainEventWithStateParser.parse(
+      domainEvent,
+      { valueName: 'domainEvent' }
+    ).unwrapOrThrow(
+      (err): Error => new errors.DomainEventMalformed(err.message)
+    );
     validateDomainEventWithState({ domainEvent, application });
 
     domainEventEmitter.emit(domainEvent);
