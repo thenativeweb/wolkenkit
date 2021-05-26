@@ -14,6 +14,7 @@ import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/In
 import { InMemorySubscriberOptions } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriberOptions';
 import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { regex } from '../../../../lib/common/utils/uuid';
@@ -21,8 +22,9 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { v4 } from 'uuid';
-import { Value } from 'validate-value';
 import * as errors from '../../../../lib/common/errors';
+
+const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
 
 suite('awaitItem/http', (): void => {
   suite('/v2', (): void => {
@@ -52,7 +54,7 @@ suite('awaitItem/http', (): void => {
         newItemSubscriber,
         newItemSubscriberChannel,
         validateOutgoingItem ({ item }: { item: any }): void {
-          new Value(getCommandWithMetadataSchema()).validate(item);
+          commandWithMetadataParser.parse(item).unwrapOrThrow();
         }
       }));
     });
@@ -400,7 +402,7 @@ suite('awaitItem/http', (): void => {
           newItemSubscriber: newItemSubSubscriber,
           newItemSubscriberChannel,
           validateOutgoingItem ({ item }: { item: any }): void {
-            new Value(getCommandWithMetadataSchema()).validate(item);
+            commandWithMetadataParser.parse(item).unwrapOrThrow();
           }
         }));
 

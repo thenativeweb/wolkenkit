@@ -1,10 +1,10 @@
 import { flaschenpost } from 'flaschenpost';
 import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -36,8 +36,8 @@ const acknowledge = {
   }: {
     priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(acknowledge.request.body),
-          responseBodySchema = new Value(acknowledge.response.body);
+    const requestBodyParser = new Parser(acknowledge.request.body),
+          responseBodyParser = new Parser(acknowledge.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -46,11 +46,12 @@ const acknowledge = {
           req
         });
 
-        try {
-          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          req.body,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const { discriminator, token } = req.body;
 
@@ -66,7 +67,10 @@ const acknowledge = {
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {

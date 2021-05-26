@@ -1,8 +1,8 @@
 import { Application } from 'express';
 import { assert } from 'assertthat';
 import { getApi } from '../../../../lib/apis/getHealth/http';
+import { Parser } from 'validate-value';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { Value } from 'validate-value';
 
 suite('getHealth/http', (): void => {
   suite('/v2', (): void => {
@@ -36,7 +36,7 @@ suite('getHealth/http', (): void => {
       });
 
       test('returns health information.', async (): Promise<void> => {
-        const value = new Value({
+        const parser = new Parser({
           type: 'object',
           properties: {
             host: {
@@ -107,9 +107,7 @@ suite('getHealth/http', (): void => {
           url: '/v2/'
         });
 
-        assert.that((): void => {
-          value.validate(data);
-        }).is.not.throwing();
+        assert.that(parser.parse(data)).is.not.anError();
       });
     });
   });

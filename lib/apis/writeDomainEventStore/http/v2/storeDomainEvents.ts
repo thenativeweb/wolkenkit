@@ -4,14 +4,14 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
 
-const domainEventSchema = new Value(getDomainEventSchema());
+const domainEventParser = new Parser(getDomainEventSchema());
 const logger = flaschenpost.getLogger();
 
 const storeDomainEvents = {
@@ -33,7 +33,7 @@ const storeDomainEvents = {
   getHandler ({ domainEventStore }: {
     domainEventStore: DomainEventStore;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(storeDomainEvents.response.body);
+    const responseBodySchema = new Parser(storeDomainEvents.response.body);
 
     return async function (req, res): Promise<any> {
       try {
@@ -55,18 +55,19 @@ const storeDomainEvents = {
         );
 
         for (const domainEvent of domainEvents) {
-          try {
-            domainEventSchema.validate(domainEvent);
-          } catch (ex: unknown) {
-            throw new errors.DomainEventMalformed((ex as Error).message);
-          }
+          domainEventParser.parse(domainEvent).unwrapOrThrow(
+            (err): Error => new errors.DomainEventMalformed(err.message)
+          );
         }
 
         await domainEventStore.storeDomainEvents({ domainEvents });
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodySchema.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {

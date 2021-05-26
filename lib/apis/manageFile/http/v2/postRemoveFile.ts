@@ -6,9 +6,9 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -43,8 +43,8 @@ const postRemoveFile = {
     application: Application;
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postRemoveFile.request.body),
-          responseBodySchema = new Value(postRemoveFile.response.body);
+    const requestBodyParser = new Parser(postRemoveFile.request.body),
+          responseBodyParser = new Parser(postRemoveFile.response.body);
 
     return async function (req, res): Promise<any> {
       try {
@@ -53,11 +53,12 @@ const postRemoveFile = {
           req
         });
 
-        try {
-          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          req.body,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const { id } = req.body;
 
@@ -93,7 +94,10 @@ const postRemoveFile = {
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {

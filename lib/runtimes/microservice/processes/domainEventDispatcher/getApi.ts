@@ -8,10 +8,10 @@ import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventS
 import { getApi as getHandleDomainEventApi } from '../../../../apis/handleDomainEvent/http';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnReceiveDomainEvent';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
-import { Value } from 'validate-value';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
@@ -35,6 +35,8 @@ const getApi = async function ({
     onReceiveDomainEvent
   });
 
+  const domainEventParser = new Parser(getDomainEventSchema());
+
   const { api: awaitDomainEventApi } = await getAwaitDomainEventApi<DomainEvent<DomainEventData>>({
     corsOrigin: getCorsOrigin(configuration.awaitDomainEventCorsOrigin),
     priorityQueueStore,
@@ -43,7 +45,10 @@ const getApi = async function ({
     validateOutgoingItem ({ item }: {
       item: DomainEvent<DomainEventData>;
     }): void {
-      new Value(getDomainEventSchema()).validate(item, { valueName: 'domainEvent' });
+      domainEventParser.parse(
+        item,
+        { valueName: 'domainEvent' }
+      ).unwrapOrThrow();
       validateDomainEvent({ application, domainEvent: item });
     }
   });
