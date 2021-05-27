@@ -1,6 +1,6 @@
-import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
+import { Schema } from '../../../common/elements/Schema';
 
-const getJwtSchema = function (): GraphqlIncompatibleSchema {
+const getJwtSchema = function (): Schema {
   return {
     type: 'object',
     properties: {

@@ -1,7 +1,7 @@
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
 export interface DomainEventDescription {
   documentation?: string;
 
-  schema?: GraphqlIncompatibleSchema;
+  schema?: Schema;
 }

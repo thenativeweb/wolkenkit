@@ -1,11 +1,11 @@
 import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
-import { DomainEventData, DomainEventHandler, Schema } from 'wolkenkit';
+import { ApiSchema, DomainEventData, DomainEventHandler } from 'wolkenkit';
 
 export type SampleDomainEventData = DomainEventData;
 
 export const sampleDomainEvent: DomainEventHandler<SampleState, SampleDomainEventData, Infrastructure> = {
-  getSchema (): Schema {
+  getSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {},

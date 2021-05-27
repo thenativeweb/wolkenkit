@@ -1,9 +1,9 @@
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
 export interface NotificationDescription {
   documentation?: string;
 
-  dataSchema?: GraphqlIncompatibleSchema;
+  dataSchema?: Schema;
 
-  metadataSchema?: GraphqlIncompatibleSchema;
+  metadataSchema?: Schema;
 }

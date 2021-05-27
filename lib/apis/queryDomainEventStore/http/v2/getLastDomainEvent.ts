@@ -2,9 +2,9 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -23,7 +23,7 @@ const getLastDomainEvent = {
       },
       required: [ 'aggregateIdentifier' ],
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 404 ],

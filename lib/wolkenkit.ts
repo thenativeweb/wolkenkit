@@ -38,12 +38,13 @@ import { createSandbox as sandbox } from './common/utils/test/sandbox/createSand
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
 import { View } from './common/elements/View';
-import { GraphqlIncompatibleSchema, Schema } from './common/elements/Schema';
+import { ApiSchema, Schema } from './common/elements/Schema';
 
 export {
   Aggregate,
   AggregateService,
   AggregatesService,
+  ApiSchema,
   Application,
   AskInfrastructure,
   ClientService,
@@ -65,7 +66,7 @@ export {
   Hooks,
   loadApplication,
   GetInitialState,
-  GraphqlIncompatibleSchema,
+  Schema,
   LockService,
   LoggerService,
   Notification,
@@ -79,7 +80,6 @@ export {
   QueryOptions,
   QueryResultItem,
   sandbox,
-  Schema,
   State,
   TellInfrastructure,
   View

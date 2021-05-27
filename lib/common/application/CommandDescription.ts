@@ -1,7 +1,7 @@
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
 export interface CommandDescription {
   documentation?: string;
 
-  schema?: GraphqlIncompatibleSchema;
+  schema?: Schema;
 }

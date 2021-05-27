@@ -4,7 +4,7 @@ import { AskInfrastructure } from '../common/elements/AskInfrastructure';
 import { cloneDeep } from 'lodash';
 import { DomainEventData } from '../common/elements/DomainEventData';
 import { DomainEventHandler } from '../common/elements/DomainEventHandler';
-import { GraphqlIncompatibleSchema } from '../common/elements/Schema';
+import { Schema } from '../common/elements/Schema';
 import { State } from '../common/elements/State';
 import { TellInfrastructure } from '../common/elements/TellInfrastructure';
 import * as errors from '../common/errors';
@@ -33,7 +33,7 @@ const withSystemDomainEvents: ApplicationEnhancer = (application): Application =
         }
 
         const domainEventHandler: DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure> = {
-          getSchema (): GraphqlIncompatibleSchema {
+          getSchema (): Schema {
             return {
               type: 'object',
               properties: {

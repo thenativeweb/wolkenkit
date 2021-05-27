@@ -1,7 +1,7 @@
+import { ApiSchema } from '../elements/Schema';
 import { getDomainEventSchema } from './getDomainEventSchema';
-import { Schema } from '../elements/Schema';
 
-const getDomainEventSchemaForGraphql = function (): Schema {
+const getDomainEventSchemaForGraphql = function (): ApiSchema {
   const domainEventSchema = getDomainEventSchema();
 
   domainEventSchema.properties!.data = {
@@ -12,7 +12,7 @@ const getDomainEventSchemaForGraphql = function (): Schema {
   delete (domainEventSchema as any).properties.metadata.properties.initiator.properties.user.properties.claims;
   (domainEventSchema as any).properties!.metadata!.properties!.initiator!.properties!.user!.required = [ 'id' ];
 
-  return domainEventSchema as Schema;
+  return domainEventSchema as ApiSchema;
 };
 
 export { getDomainEventSchemaForGraphql };

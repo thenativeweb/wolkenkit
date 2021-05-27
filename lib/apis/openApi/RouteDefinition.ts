@@ -1,19 +1,19 @@
-import { GraphqlIncompatibleSchema } from '../../common/elements/Schema';
+import { Schema } from '../../common/elements/Schema';
 
 export interface RouteDefinition {
   description: string;
   path: string;
 
   request: {
-    headers?: GraphqlIncompatibleSchema;
-    body?: GraphqlIncompatibleSchema;
-    query?: GraphqlIncompatibleSchema;
+    headers?: Schema;
+    body?: Schema;
+    query?: Schema;
   };
 
   response: {
     statusCodes: number[];
     stream?: boolean;
-    headers?: GraphqlIncompatibleSchema;
-    body?: GraphqlIncompatibleSchema;
+    headers?: Schema;
+    body?: Schema;
   };
 }

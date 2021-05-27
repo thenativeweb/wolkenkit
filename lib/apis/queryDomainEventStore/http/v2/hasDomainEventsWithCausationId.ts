@@ -1,8 +1,8 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import * as errors from '../../../../common/errors';
@@ -21,7 +21,7 @@ const hasDomainEventsWithCausationId = {
       },
       required: [ 'causation-id' ],
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
   response: {
     statusCodes: [ 200 ],
@@ -33,7 +33,7 @@ const hasDomainEventsWithCausationId = {
       },
       required: [ 'hasDomainEventsWithCausationId' ],
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
 
   getHandler ({

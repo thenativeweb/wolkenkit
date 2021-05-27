@@ -1,8 +1,8 @@
 import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
 import { getClientSchema } from './getClientSchema';
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
-const getCommandWithMetadataSchema = function (): GraphqlIncompatibleSchema {
+const getCommandWithMetadataSchema = function (): Schema {
   return {
     type: 'object',
     properties: {

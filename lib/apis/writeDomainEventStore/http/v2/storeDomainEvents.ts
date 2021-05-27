@@ -3,9 +3,9 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { Parser } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -22,12 +22,12 @@ const storeDomainEvents = {
     body: {
       type: 'array',
       items: getDomainEventSchema()
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 409, 415 ],
 
-    body: { type: 'object' } as GraphqlIncompatibleSchema
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ domainEventStore }: {

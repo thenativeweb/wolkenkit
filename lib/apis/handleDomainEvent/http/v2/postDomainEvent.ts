@@ -3,10 +3,10 @@ import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { Parser } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
@@ -33,11 +33,11 @@ const postDomainEvent = {
       },
       required: [ 'domainEvent' ],
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
-    body: { type: 'object' } as GraphqlIncompatibleSchema
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ onReceiveDomainEvent, application }: {

@@ -3,9 +3,9 @@ import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
+import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -22,7 +22,7 @@ const queryValue = {
       type: 'object',
       properties: {},
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 404 ]

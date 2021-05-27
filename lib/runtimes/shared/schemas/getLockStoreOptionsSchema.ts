@@ -1,9 +1,9 @@
 import { getPortSchema } from './getPortSchema';
-import { GraphqlIncompatibleSchema } from '../../../common/elements/Schema';
+import { Schema } from '../../../common/elements/Schema';
 
 const portSchema = getPortSchema();
 
-const getLockStoreOptionsSchema = function (): GraphqlIncompatibleSchema {
+const getLockStoreOptionsSchema = function (): Schema {
   return {
     type: 'object',
     oneOf: [

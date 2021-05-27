@@ -1,7 +1,7 @@
 import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
-const getDomainEventSchema = function (): GraphqlIncompatibleSchema {
+const getDomainEventSchema = function (): Schema {
   return {
     type: 'object',
     properties: {

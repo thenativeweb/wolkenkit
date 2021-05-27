@@ -4,8 +4,8 @@ import { ClientService } from '../services/ClientService';
 import { DomainEvent } from './DomainEvent';
 import { DomainEventData } from './DomainEventData';
 import { DomainEventWithState } from './DomainEventWithState';
-import { GraphqlIncompatibleSchema } from './Schema';
 import { LoggerService } from '../services/LoggerService';
+import { Schema } from './Schema';
 import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
 
@@ -16,7 +16,7 @@ export interface DomainEventHandler<
 > {
   getDocumentation?: () => string;
 
-  getSchema?: () => GraphqlIncompatibleSchema;
+  getSchema?: () => Schema;
 
   handle: (state: TState, domainEvent: DomainEvent<TDomainEventData>, services: {
     logger: LoggerService;

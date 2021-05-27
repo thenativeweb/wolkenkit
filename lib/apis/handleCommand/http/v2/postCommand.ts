@@ -4,9 +4,9 @@ import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Schema } from '../../../../common/elements/Schema';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { validateContentType } from '../../../base/validateContentType';
@@ -48,7 +48,7 @@ const postCommand = {
       },
       required: [ 'id', 'aggregateIdentifier' ],
       additionalProperties: false
-    } as GraphqlIncompatibleSchema
+    } as Schema
   },
 
   getHandler ({ onReceiveCommand, application }: {

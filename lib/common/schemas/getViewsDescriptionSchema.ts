@@ -1,6 +1,6 @@
-import { GraphqlIncompatibleSchema } from '../elements/Schema';
+import { Schema } from '../elements/Schema';
 
-const getViewsDescriptionSchema = function (): GraphqlIncompatibleSchema {
+const getViewsDescriptionSchema = function (): Schema {
   return {
     type: 'object',
     patternProperties: {

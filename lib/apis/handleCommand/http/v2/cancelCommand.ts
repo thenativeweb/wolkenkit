@@ -2,12 +2,12 @@ import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
-import { GraphqlIncompatibleSchema } from '../../../../common/elements/Schema';
 import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { Parser } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
@@ -25,7 +25,7 @@ const cancelCommand = {
   },
   response: {
     statusCodes: [ 200, 400, 401, 404, 415 ],
-    body: { type: 'object' } as GraphqlIncompatibleSchema
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ onCancelCommand, application }: {
