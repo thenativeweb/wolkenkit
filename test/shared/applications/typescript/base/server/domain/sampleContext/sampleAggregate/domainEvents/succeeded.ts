@@ -1,14 +1,14 @@
 import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
 // @ts-ignore
-import { DomainEventData, DomainEventHandler, Schema } from 'wolkenkit';
+import { ApiSchema, DomainEventData, DomainEventHandler } from 'wolkenkit';
 
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface SucceededData extends DomainEventData {}
 /* eslint-enable @typescript-eslint/no-empty-interface */
 
 export const succeeded: DomainEventHandler<SampleState, SucceededData, Infrastructure> = {
-  getSchema (): Schema {
+  getSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {},

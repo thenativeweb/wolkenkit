@@ -9,7 +9,7 @@ import { CommandHandler } from '../../../../common/elements/CommandHandler';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Parser } from 'validate-value';
@@ -56,8 +56,8 @@ const getIndividualCommandFieldConfiguration = function ({
 
   const schema = commandHandler.getSchema();
 
-  if (!(schema.type === 'object' && Object.keys(schema.properties!).length === 0)) {
-    const typeDefs = getGraphqlFromJsonSchema({
+  if (!('type' in schema && schema.type === 'object' && Object.keys(schema.properties).length === 0)) {
+    const typeDefs = getGraphqlSchemaFromJsonSchema({
       schema: commandHandler.getSchema(),
       rootName: `${contextName}_${aggregateName}_${commandName}`,
       direction: 'input'

@@ -1,8 +1,8 @@
 import { Infrastructure } from '../infrastructure';
 import { Message } from '../types/Message';
 import { Readable } from 'stream';
+import { ApiSchema, NotificationService, NotificationSubscriber, QueryHandlerReturnsStream, QueryResultItem, View } from 'wolkenkit';
 import { FlowUpdated, ViewUpdated } from '../notifications';
-import { NotificationService, NotificationSubscriber, QueryHandlerReturnsStream, QueryResultItem, Schema, View } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
@@ -11,7 +11,7 @@ const messages: View<Infrastructure> = {
     all: {
       type: 'stream',
 
-      getResultItemSchema (): Schema {
+      getResultItemSchema (): ApiSchema {
         return {
           type: 'object',
           properties: {

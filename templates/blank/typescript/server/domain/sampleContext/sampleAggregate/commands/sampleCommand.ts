@@ -1,11 +1,11 @@
 import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
-import { CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { ApiSchema, CommandData, CommandHandler } from 'wolkenkit';
 
 export type SampleCommandData = CommandData;
 
 export const sampleCommand: CommandHandler<SampleState, SampleCommandData, Infrastructure> = {
-  getSchema (): Schema {
+  getSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {},

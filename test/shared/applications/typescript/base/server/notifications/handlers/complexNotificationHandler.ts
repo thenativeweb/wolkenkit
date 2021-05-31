@@ -1,26 +1,28 @@
 import { ComplexNotificationDefinition } from "../definitions/ComplexNotificationDefinition";
 import { Infrastructure } from '../../infrastructure';
 // @ts-ignore
-import { NotificationHandler, Schema } from 'wolkenkit';
+import { ApiSchema, NotificationHandler } from 'wolkenkit';
 
 const complexNotificationHandler: NotificationHandler<ComplexNotificationDefinition, Infrastructure> = {
-  getDataSchema (): Schema {
+  getDataSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {
         message: { type: 'string', minLength: 1 }
       },
-      required: [ 'message' ]
+      required: [ 'message' ],
+      additionalProperties: false
     };
   },
 
-  getMetadataSchema (): Schema {
+  getMetadataSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {
         public: { type: 'boolean' }
       },
-      required: [ 'public' ]
+      required: [ 'public' ],
+      additionalProperties: false
     };
   },
 
