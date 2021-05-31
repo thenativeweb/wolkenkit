@@ -1,14 +1,14 @@
 import { Infrastructure } from '../../../../infrastructure';
 import { MessageState } from '../MessageState';
 import { SentData } from '../domainEvents/sent';
-import { CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { ApiSchema, CommandData, CommandHandler } from 'wolkenkit';
 
 export interface SendData extends CommandData {
   text: string;
 }
 
 export const send: CommandHandler<MessageState, SendData, Infrastructure> = {
-  getSchema (): Schema {
+  getSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {

@@ -1,7 +1,7 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { Application } from '../../../../common/application/Application';
 import { flaschenpost } from 'flaschenpost';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
@@ -18,7 +18,7 @@ const getCancelCommandFieldConfiguration = function ({ application, onCancelComm
   application: Application;
   onCancelCommand: OnCancelCommand;
 }): GraphQLFieldConfig<any, ResolverContext> {
-  const cancelTypeDefs = getGraphqlFromJsonSchema({
+  const cancelTypeDefs = getGraphqlSchemaFromJsonSchema({
     schema: getItemIdentifierSchema(),
     rootName: 'CommandIdentifier',
     direction: 'input'
