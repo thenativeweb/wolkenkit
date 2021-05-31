@@ -1,10 +1,10 @@
+import { ApiSchema } from './Schema';
 import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { LoggerService } from '../services/LoggerService';
 import { QueryOptions } from './QueryOptions';
 import { QueryResultItem } from './QueryResultItem';
 import { Readable } from 'stream';
-import { Schema } from './Schema';
 import { TellInfrastructure } from './TellInfrastructure';
 
 export interface QueryHandlerReturnsStream<
@@ -22,9 +22,9 @@ export interface QueryHandlerReturnsStream<
 
   getDocumentation?: () => string;
 
-  getOptionsSchema?: () => Schema;
+  getOptionsSchema?: () => ApiSchema;
 
-  getResultItemSchema?: () => Schema;
+  getResultItemSchema?: () => ApiSchema;
 
   isAuthorized: (databaseViewItem: TQueryResultItem, services: {
     client: ClientService;

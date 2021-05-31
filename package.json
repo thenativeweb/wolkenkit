@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "4.0.0-internal.111",
+  "version": "4.0.0-internal.114",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
   "contributors": [
     {
@@ -137,7 +137,7 @@
     "@types/lodash": "4.14.170",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.7",
-    "@types/mongodb": "3.6.16",
+    "@types/mongodb": "3.6.17",
     "@types/mssql": "6.0.8",
     "@types/mysql": "2.15.18",
     "@types/node": "15.6.1",
@@ -161,7 +161,7 @@
     "express": "4.17.1",
     "flaschenpost": "5.0.35",
     "get-cors-origin": "4.0.16",
-    "get-graphql-from-jsonschema": "7.0.5",
+    "get-graphql-from-jsonschema": "8.0.3",
     "graphql": "15.5.0",
     "helmet": "4.6.0",
     "ioredis": "4.27.3",
@@ -170,7 +170,7 @@
     "limes": "6.1.3",
     "lodash": "4.17.21",
     "minio": "7.0.18",
-    "mongodb": "3.6.8",
+    "mongodb": "3.6.9",
     "mssql": "7.1.0",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
@@ -211,7 +211,7 @@
     "run-script-os": "1.1.6",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.95",
+    "thenativeweb-ux": "5.8.96",
     "wait-for-signals": "1.2.3",
     "ws": "7.4.6"
   },
