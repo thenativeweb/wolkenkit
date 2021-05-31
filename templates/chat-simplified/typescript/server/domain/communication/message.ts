@@ -1,12 +1,12 @@
 import { Infrastructure } from '../../infrastructure';
 import {
   Aggregate,
+  ApiSchema,
   CommandData,
   CommandHandler,
   DomainEventData,
   DomainEventHandler,
   GetInitialState,
-  Schema,
   State
 } from 'wolkenkit';
 
@@ -39,7 +39,7 @@ const message: Aggregate<MessageState, Infrastructure> = {
 
   commandHandlers: {
     send: {
-      getSchema (): Schema {
+      getSchema (): ApiSchema {
         return {
           type: 'object',
           properties: {
@@ -69,7 +69,7 @@ const message: Aggregate<MessageState, Infrastructure> = {
     } as CommandHandler<MessageState, SendData, Infrastructure>,
 
     like: {
-      getSchema (): Schema {
+      getSchema (): ApiSchema {
         return {
           type: 'object',
           properties: {},
@@ -96,7 +96,7 @@ const message: Aggregate<MessageState, Infrastructure> = {
 
   domainEventHandlers: {
     sent: {
-      getSchema (): Schema {
+      getSchema (): ApiSchema {
         return {
           type: 'object',
           properties: {
@@ -120,7 +120,7 @@ const message: Aggregate<MessageState, Infrastructure> = {
     } as DomainEventHandler<MessageState, SentData, Infrastructure>,
 
     liked: {
-      getSchema (): Schema {
+      getSchema (): ApiSchema {
         return {
           type: 'object',
           properties: {

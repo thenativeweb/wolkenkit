@@ -3,7 +3,7 @@ import { Application } from '../../../../common/application/Application';
 import { executeStreamQueryHandler } from '../../../../common/domain/executeStreamQueryHandler';
 import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { getClientService } from '../../../../common/services/getClientService';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { QueryHandlerReturnsStream } from '../../../../common/elements/QueryHandlerReturnsStream';
 import { QueryHandlerReturnsValue } from '../../../../common/elements/QueryHandlerReturnsValue';
@@ -29,7 +29,7 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
   }
 
   const resultItemSchema = queryHandler.getResultItemSchema();
-  const resultItemGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
+  const resultItemGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
     rootName: `${viewName}_${queryName}_resultItem`,
     schema: resultItemSchema,
     direction: 'output'
@@ -41,7 +41,7 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
 
   if (queryHandler.getOptionsSchema) {
     const optionsSchema = queryHandler.getOptionsSchema();
-    const optionsGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
+    const optionsGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
       rootName: `${viewName}_${queryName}_options`,
       schema: optionsSchema,
       direction: 'input'
