@@ -6,14 +6,13 @@ import { getAggregatesService } from '../../../../common/services/getAggregatesS
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchemaForGraphql } from '../../../../common/schemas/getDomainEventSchemaForGraphql';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { partOf } from 'partof';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
 import { ResolverContext } from '../ResolverContext';
-import { Schema } from '../../../../common/elements/Schema';
 import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
@@ -30,8 +29,8 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
 }): GraphQLFieldConfig<any, ResolverContext> {
   const aggregatesService = getAggregatesService({ repository });
-  const domainEventSchema: Schema = getDomainEventSchemaForGraphql();
-  const domainEventGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
+  const domainEventSchema = getDomainEventSchemaForGraphql();
+  const domainEventGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
     schema: domainEventSchema,
     rootName: 'DomainEvent',
     direction: 'output'
