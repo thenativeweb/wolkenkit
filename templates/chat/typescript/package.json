@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
-    "@types/mongodb": "3.6.17",
-    "mongodb": "3.6.8",
+    "@types/mongodb": "3.6.16",
+    "mongodb": "3.6.9",
     "processenv": "3.0.5"
   },
   "devDependencies": {
