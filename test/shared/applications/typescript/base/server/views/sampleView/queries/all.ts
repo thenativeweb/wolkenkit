@@ -1,7 +1,7 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Readable } from 'stream';
 // @ts-ignore
-import { QueryHandler, QueryOptions, QueryResultItem, Schema } from 'wolkenkit';
+import { ApiSchema, QueryHandler, QueryOptions, QueryResultItem } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem {
   id: string;
@@ -13,7 +13,7 @@ export interface AllResultItem extends QueryResultItem {
 export const all: QueryHandler<AllResultItem, Infrastructure> = {
   type: 'stream',
 
-  getResultItemSchema (): Schema {
+  getResultItemSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {
