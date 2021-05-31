@@ -1,6 +1,6 @@
-import { Schema } from '../elements/Schema';
+import { ApiSchema } from '../elements/Schema';
 
-const getAggregateIdentifierSchema = function (): Schema {
+const getAggregateIdentifierSchema = function (): ApiSchema {
   return {
     type: 'object',
     properties: {

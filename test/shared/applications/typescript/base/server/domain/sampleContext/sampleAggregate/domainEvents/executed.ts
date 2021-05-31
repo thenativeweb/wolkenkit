@@ -1,14 +1,14 @@
 import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
 // @ts-ignore
-import { DomainEventData, DomainEventHandler, Schema } from 'wolkenkit';
+import { ApiSchema, DomainEventData, DomainEventHandler } from 'wolkenkit';
 
 export interface ExecutedData extends DomainEventData {
   strategy: 'succeed' | 'fail' | 'reject';
 }
 
 export const executed: DomainEventHandler<SampleState, ExecutedData, Infrastructure> = {
-  getSchema (): Schema {
+  getSchema (): ApiSchema {
     return {
       type: 'object',
       properties: {
