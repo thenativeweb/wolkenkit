@@ -128,7 +128,8 @@ const getV2 = async function ({
 
   graphqlServer.applyMiddleware({
     app: api,
-    path: '/'
+    path: '/',
+    cors: false
   });
 
   const initializeGraphQlOnServer = async ({ server }: {
