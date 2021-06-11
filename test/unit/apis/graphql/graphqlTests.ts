@@ -1253,7 +1253,7 @@ suite('graphql', function (): void {
         });
       });
 
-      const { headers, status, data } = await axios({
+      const { headers } = await axios({
         url: 'http://localhost/v2/',
         validateStatus: (): boolean => true,
         socketPath: socket,
