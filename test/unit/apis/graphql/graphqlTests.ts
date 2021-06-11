@@ -38,6 +38,7 @@ import ws from 'ws';
 import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 import * as errors from '../../../../lib/common/errors';
+import axios from 'axios';
 
 suite('graphql', function (): void {
   this.timeout(30_000);
@@ -1205,6 +1206,65 @@ suite('graphql', function (): void {
           ]
         }
       });
+    });
+  });
+
+  suite.only('various', (): void => {
+    test('sets the expected cors header.', async (): Promise<void> => {
+      const corsOrigin = 'some.cool.domain';
+
+      ({ api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
+        identityProviders,
+        corsOrigin: [ corsOrigin ],
+        application,
+        handleCommand: {
+          async onReceiveCommand ({ command }): Promise<void> {
+            receivedCommands.push(command);
+          },
+          async onCancelCommand ({ commandIdentifierWithClient }): Promise<void> {
+            cancelledCommands.push(commandIdentifierWithClient);
+          }
+        },
+        observeDomainEvents: {
+          repository
+        },
+        observeNotifications: {
+          subscriber,
+          channelForNotifications
+        },
+        queryView: true,
+        enableIntegratedClient: false,
+        webSocketEndpoint: '/v2/'
+      }));
+
+      const server = http.createServer(api);
+
+      [ socket ] = await getSocketPaths({ count: 1 });
+
+      await initializeGraphQlOnServer({ server });
+
+      await new Promise<void>((resolve, reject): void => {
+        server.listen(socket, (): void => {
+          resolve();
+        });
+
+        server.on('error', (err): void => {
+          reject(err);
+        });
+      });
+
+      const { headers } = await axios({
+        url: 'http://localhost/v2/',
+        validateStatus: (): boolean => true,
+        socketPath: socket,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        data: { query: '{ sampleView { all { id }}}' }
+      });
+
+      assert.that(headers['access-control-allow-origin']).is.equalTo(corsOrigin);
     });
   });
 });
