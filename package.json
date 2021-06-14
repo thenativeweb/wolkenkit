@@ -164,7 +164,7 @@
     "get-graphql-from-jsonschema": "8.0.4",
     "graphql": "15.5.0",
     "helmet": "4.6.0",
-    "ioredis": "4.27.3",
+    "ioredis": "4.27.6",
     "is-typescript": "4.0.3",
     "isolated": "3.0.18",
     "limes": "6.1.4",
