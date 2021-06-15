@@ -4,7 +4,7 @@
   "description": "",
   "dependencies": {},
   "devDependencies": {
-    "mocha": "8.4.0",
+    "mocha": "9.0.0",
     "run-script-os": "1.1.6"
   },
   "scripts": {
