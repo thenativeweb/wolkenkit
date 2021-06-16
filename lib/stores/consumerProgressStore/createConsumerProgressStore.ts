@@ -1,11 +1,11 @@
 import { ConsumerProgressStore } from './ConsumerProgressStore';
 import { ConsumerProgressStoreOptions } from './ConsumerProgressStoreOptions';
-import { errors } from '../../common/errors';
 import { InMemoryConsumerProgressStore } from './InMemory';
 import { MongoDbConsumerProgressStore } from './MongoDb';
 import { MySqlConsumerProgressStore } from './MySql';
 import { PostgresConsumerProgressStore } from './Postgres';
 import { SqlServerConsumerProgressStore } from './SqlServer';
+import * as errors from '../../common/errors';
 
 const createConsumerProgressStore = async function (
   options: ConsumerProgressStoreOptions

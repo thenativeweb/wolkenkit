@@ -1,16 +1,16 @@
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateContentType } from '../../../base/validateContentType';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -59,8 +59,8 @@ const postPerformReplay = {
     performReplay: PerformReplay;
     application: Application;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postPerformReplay.request.body),
-          responseBodySchema = new Value(postPerformReplay.response.body);
+    const requestBodyParser = new Parser(postPerformReplay.request.body),
+          responseBodyParser = new Parser(postPerformReplay.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -69,11 +69,12 @@ const postPerformReplay = {
           req
         });
 
-        try {
-          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          req.body,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         const {
           flowNames = Object.keys(application.flows),
@@ -98,13 +99,16 @@ const postPerformReplay = {
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ContentTypeMismatch.code: {

@@ -1,4 +1,3 @@
-import { errors } from '../../common/errors';
 import { LockStore } from './LockStore';
 import { InMemoryLockStore, InMemoryLockStoreOptions } from './InMemory';
 import { MongoDbLockStore, MongoDbLockStoreOptions } from './MongoDb';
@@ -6,6 +5,7 @@ import { MySqlLockStore, MySqlLockStoreOptions } from './MySql';
 import { PostgresLockStore, PostgresLockStoreOptions } from './Postgres';
 import { RedisLockStore, RedisLockStoreOptions } from './Redis';
 import { SqlServerLockStore, SqlServerLockStoreOptions } from './SqlServer';
+import * as errors from '../../common/errors';
 
 const createLockStore = async function (
   options: InMemoryLockStoreOptions | MongoDbLockStoreOptions | MySqlLockStoreOptions | PostgresLockStoreOptions | RedisLockStoreOptions | SqlServerLockStoreOptions

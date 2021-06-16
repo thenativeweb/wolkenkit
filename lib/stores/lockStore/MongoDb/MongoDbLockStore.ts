@@ -1,11 +1,11 @@
 import { CollectionNames } from './CollectionNames';
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { MongoDbLockStoreOptions } from './MongoDbLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { URL } from 'url';
 import { Collection, Db, MongoClient } from 'mongodb';
+import * as errors from '../../../common/errors';
 
 class MongoDbLockStore implements LockStore {
   protected client: MongoClient;

@@ -159,7 +159,10 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
         logFileStream.write(JSON.stringify(data), 'utf-8');
         switch (data.type) {
           case 'error': {
-            throw new observerErrors.ObserverError('An unexpected error occurred during fuzzing. This is a potential bug!', { data: data.data.ex });
+            throw new observerErrors.ObserverError({
+              message: 'An unexpected error occurred during fuzzing. This is a potential bug!',
+              data: data.data.ex
+            });
           }
           default: {
             break;

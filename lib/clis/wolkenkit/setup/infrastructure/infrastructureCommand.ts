@@ -1,12 +1,12 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { errors } from '../../../../common/errors';
 import { getApplicationPackageJson } from '../../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../../common/application/getApplicationRoot';
 import { getInfrastructureDefinition } from '../../../../common/application/getInfrastructureDefinition';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { InfrastructureOptions } from './InfrastructureOptions';
 import path from 'path';
+import * as errors from '../../../../common/errors';
 
 const infrastructureCommand = function (): Command<InfrastructureOptions> {
   return {

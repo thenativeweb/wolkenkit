@@ -3,7 +3,6 @@ import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { errors } from '../../../common/errors';
 import { MySqlDomainEventStoreOptions } from './MySqlDomainEventStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
@@ -12,6 +11,7 @@ import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { MysqlError, Pool, PoolConnection } from 'mysql';
 import { PassThrough, Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 class MySqlDomainEventStore implements DomainEventStore {
   protected tableNames: TableNames;

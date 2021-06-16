@@ -1,11 +1,11 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import fs from 'fs';
 import path from 'path';
 import streamToString from 'stream-to-string';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createFileStore }: {

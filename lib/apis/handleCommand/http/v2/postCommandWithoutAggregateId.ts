@@ -2,7 +2,6 @@ import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { isCustomError } from 'defekt';
@@ -11,9 +10,10 @@ import { Schema } from '../../../../common/elements/Schema';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { parse, Parser } from 'validate-value';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -55,7 +55,7 @@ const postCommandWithoutAggregateId = {
     onReceiveCommand: OnReceiveCommand;
     application: Application;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(postCommandWithoutAggregateId.response.body);
+    const responseBodyParser = new Parser(postCommandWithoutAggregateId.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -79,11 +79,13 @@ const postCommandWithoutAggregateId = {
           data: req.body
         });
 
-        try {
-          new Value(getCommandSchema()).validate(command, { valueName: 'command' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        parse(
+          command,
+          getCommandSchema(),
+          { valueName: 'command' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         validateCommand({ command, application });
 
@@ -116,13 +118,16 @@ const postCommandWithoutAggregateId = {
           }
         };
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ContentTypeMismatch.code: {

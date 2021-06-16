@@ -5,7 +5,6 @@ import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleCommand/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -16,6 +15,7 @@ import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemId
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('handleCommand/http/Client', (): void => {
   const identityProviders = [ identityProvider ];

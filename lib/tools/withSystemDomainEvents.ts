@@ -4,10 +4,10 @@ import { AskInfrastructure } from '../common/elements/AskInfrastructure';
 import { cloneDeep } from 'lodash';
 import { DomainEventData } from '../common/elements/DomainEventData';
 import { DomainEventHandler } from '../common/elements/DomainEventHandler';
-import { errors } from '../common/errors';
 import { Schema } from '../common/elements/Schema';
 import { State } from '../common/elements/State';
 import { TellInfrastructure } from '../common/elements/TellInfrastructure';
+import * as errors from '../common/errors';
 
 const withSystemDomainEvents: ApplicationEnhancer = (application): Application => {
   const clonedApplication = cloneDeep(application);

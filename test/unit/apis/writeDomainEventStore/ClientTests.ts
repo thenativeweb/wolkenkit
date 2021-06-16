@@ -7,11 +7,11 @@ import { Client } from '../../../../lib/apis/writeDomainEventStore/http/v2/Clien
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('writeDomainEventStore/http/Client', (): void => {
   suite('/v2', (): void => {

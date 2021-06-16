@@ -1,14 +1,14 @@
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Schema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -53,7 +53,7 @@ const awaitItem = {
     validateOutgoingItem: ({ item }: { item: TItem }) => void | Promise<void>;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(awaitItem.response.body);
+    const responseBodyParser = new Parser(awaitItem.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -73,7 +73,10 @@ const awaitItem = {
               );
 
               await validateOutgoingItem({ item: itemLock.item });
-              responseBodySchema.validate(itemLock, { valueName: 'responseBody' });
+              responseBodyParser.parse(
+                itemLock,
+                { valueName: 'responseBody' }
+              ).unwrapOrThrow();
 
               writeLine({ res, data: itemLock });
 
@@ -109,7 +112,7 @@ const awaitItem = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ContentTypeMismatch.code: {

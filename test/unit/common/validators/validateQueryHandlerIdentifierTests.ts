@@ -1,10 +1,10 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { validateQueryHandlerIdentifier } from '../../../../lib/common/validators/validateQueryHandlerIdentifier';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateQueryHandlerIdentifier', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

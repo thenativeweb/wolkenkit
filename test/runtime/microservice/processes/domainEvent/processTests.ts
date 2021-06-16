@@ -7,7 +7,6 @@ import { configurationDefinition as domainEventConfigurationDefinition } from '.
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../../lib/common/errors';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
@@ -21,6 +20,7 @@ import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
+import * as errors from '../../../../../lib/common/errors';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 

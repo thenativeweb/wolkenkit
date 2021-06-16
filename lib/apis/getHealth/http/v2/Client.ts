@@ -1,7 +1,7 @@
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

@@ -1,11 +1,11 @@
 import compression from 'compression';
 import { CorsOrigin } from 'get-cors-origin';
-import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';
 import { getApiBase } from '../../base/getApiBase';
 import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import express, { Application, Request } from 'express';
+import * as errors from '../../../common/errors';
 
 const getApi = async function ({ corsOrigin, directory }: {
   corsOrigin: CorsOrigin;

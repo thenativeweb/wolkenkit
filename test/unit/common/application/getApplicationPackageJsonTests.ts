@@ -1,10 +1,10 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { getApplicationPackageJson } from '../../../../lib/common/application/getApplicationPackageJson';
 import { isolated } from 'isolated';
 import path from 'path';
+import * as errors from '../../../../lib/common/errors';
 
 suite('getApplicationPackageJson', (): void => {
   test('returns the package.json from the given directory if it contains a package.json file.', async (): Promise<void> => {

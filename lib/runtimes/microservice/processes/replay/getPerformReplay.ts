@@ -2,10 +2,10 @@ import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -47,7 +47,8 @@ const getPerformReplay = function ({
         withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates, error: ex })
       );
 
-      throw new errors.ReplayFailed('Failed to perform replay.', {
+      throw new errors.ReplayFailed({
+        message: 'Failed to perform replay.',
         cause: ex as Error,
         data: { flowNames, aggregates }
       });

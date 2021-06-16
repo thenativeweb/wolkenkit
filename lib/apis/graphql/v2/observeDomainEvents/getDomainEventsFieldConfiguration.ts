@@ -1,25 +1,25 @@
 import { Application } from '../../../../common/application/Application';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchemaForGraphql } from '../../../../common/schemas/getDomainEventSchemaForGraphql';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { partOf } from 'partof';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
 import { ResolverContext } from '../ResolverContext';
-import { Schema } from '../../../../common/elements/Schema';
 import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
-import { buildSchema, GraphQLFieldConfig, GraphQLObjectType, GraphQLString } from 'graphql';
+import { GraphQLFieldConfig, GraphQLOutputType, GraphQLString } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -29,8 +29,8 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
 }): GraphQLFieldConfig<any, ResolverContext> {
   const aggregatesService = getAggregatesService({ repository });
-  const domainEventSchema: Schema = getDomainEventSchemaForGraphql();
-  const domainEventGraphQl = getGraphqlFromJsonSchema({
+  const domainEventSchema = getDomainEventSchemaForGraphql();
+  const domainEventGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
     schema: domainEventSchema,
     rootName: 'DomainEvent',
     direction: 'output'
@@ -57,7 +57,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
   }
 
   return {
-    type: buildSchema(domainEventGraphQl.typeDefinitions.join('\n')).getType(domainEventGraphQl.typeName) as GraphQLObjectType,
+    type: instantiateGraphqlTypeDefinitions(domainEventGraphqlTypeDefinitions) as GraphQLOutputType,
     args: {
       filter: {
         type: GraphQLString

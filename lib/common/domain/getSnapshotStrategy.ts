@@ -1,6 +1,6 @@
-import { errors } from '../errors';
 import { SnapshotStrategy } from './SnapshotStrategy';
 import { SnapshotStrategyConfiguration } from './SnapshotStrategyConfiguration';
+import * as errors from '../errors';
 
 const getSnapshotStrategy = function (
   snapshotStrategyConfiguration: SnapshotStrategyConfiguration

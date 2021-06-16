@@ -1,5 +1,5 @@
-import { errors as allErrors } from '../errors';
 import { ErrorService } from './ErrorService';
+import * as allErrors from '../errors';
 
 const getErrorService = function <TKey extends keyof typeof allErrors> ({ errors }: {
   errors: TKey[];

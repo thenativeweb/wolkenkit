@@ -7,27 +7,27 @@ import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
 import { CommandHandler } from '../../../../common/elements/CommandHandler';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Parser } from 'validate-value';
 import { ResolverContext } from '../ResolverContext';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import {
-  buildSchema,
   GraphQLArgumentConfig,
   GraphQLFieldConfig,
-  GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLObjectType,
   GraphQLString
 } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
-const commandSchema = new Value(getCommandSchema());
+const commandSchema = new Parser(getCommandSchema());
 
 const getIndividualCommandFieldConfiguration = function ({
   application,
@@ -56,16 +56,15 @@ const getIndividualCommandFieldConfiguration = function ({
 
   const schema = commandHandler.getSchema();
 
-  if (!(schema.type === 'object' && Object.keys(schema.properties!).length === 0)) {
-    const typeDefs = getGraphqlFromJsonSchema({
+  if (!('type' in schema && schema.type === 'object' && Object.keys(schema.properties).length === 0)) {
+    const typeDefs = getGraphqlSchemaFromJsonSchema({
       schema: commandHandler.getSchema(),
       rootName: `${contextName}_${aggregateName}_${commandName}`,
       direction: 'input'
     });
-    const schemaForCommandInput = buildSchema(typeDefs.typeDefinitions.join('\n'));
 
     resolverArguments.data = {
-      type: schemaForCommandInput.getType(typeDefs.typeName) as GraphQLInputObjectType
+      type: instantiateGraphqlTypeDefinitions(typeDefs) as GraphQLInputType
     };
   }
 
@@ -101,11 +100,12 @@ const getIndividualCommandFieldConfiguration = function ({
         data: data === undefined ? {} : cloneDeep(data)
       });
 
-      try {
-        commandSchema.validate(command, { valueName: 'command' });
-      } catch (ex: unknown) {
-        throw new errors.CommandMalformed((ex as Error).message);
-      }
+      commandSchema.parse(
+        command,
+        { valueName: 'command' }
+      ).unwrapOrThrow(
+        (err): Error => new errors.CommandMalformed(err.message)
+      );
       validateCommand({ command, application });
 
       const commandId = v4();

@@ -2,12 +2,12 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { ClientService } from '../../../../lib/common/services/ClientService';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { executeValueQueryHandler } from '../../../../lib/common/domain/executeValueQueryHandler';
 import { getClientService } from '../../../../lib/common/services/getClientService';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('executeValueQueryHandler', (): void => {
   let application: Application,

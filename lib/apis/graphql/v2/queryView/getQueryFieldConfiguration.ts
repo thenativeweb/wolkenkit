@@ -1,10 +1,10 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { executeStreamQueryHandler } from '../../../../common/domain/executeStreamQueryHandler';
 import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { getClientService } from '../../../../common/services/getClientService';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { QueryHandlerReturnsStream } from '../../../../common/elements/QueryHandlerReturnsStream';
 import { QueryHandlerReturnsValue } from '../../../../common/elements/QueryHandlerReturnsValue';
 import { ResolverContext } from '../ResolverContext';
@@ -16,6 +16,7 @@ import {
   GraphQLList,
   GraphQLOutputType
 } from 'graphql';
+import * as errors from '../../../../common/errors';
 
 const getQueryFieldConfiguration = function ({ application, viewName, queryName, queryHandler }: {
   application: Application;
@@ -28,20 +29,19 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
   }
 
   const resultItemSchema = queryHandler.getResultItemSchema();
-  const resultItemGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
+  const resultItemGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
     rootName: `${viewName}_${queryName}_resultItem`,
     schema: resultItemSchema,
     direction: 'output'
   });
-  const resultGraphqlType = buildSchema(
-    resultItemGraphqlTypeDefinitions.typeDefinitions.join('\n')
-  ).getType(resultItemGraphqlTypeDefinitions.typeName) as GraphQLOutputType;
+
+  const resultGraphqlType = instantiateGraphqlTypeDefinitions(resultItemGraphqlTypeDefinitions) as GraphQLOutputType;
 
   const argumentConfigurationMap: GraphQLFieldConfigArgumentMap = {};
 
   if (queryHandler.getOptionsSchema) {
     const optionsSchema = queryHandler.getOptionsSchema();
-    const optionsGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
+    const optionsGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
       rootName: `${viewName}_${queryName}_options`,
       schema: optionsSchema,
       direction: 'input'

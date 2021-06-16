@@ -1,10 +1,10 @@
-import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { RedisLockStoreOptions } from './RedisLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import Redis, { Redis as RedisClient } from 'ioredis';
+import * as errors from '../../../common/errors';
 
 class RedisLockStore implements LockStore {
   protected client: Redis.Redis;

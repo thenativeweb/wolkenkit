@@ -1,18 +1,20 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
 import { Application } from '../../../../../common/application/Application';
 import { DomainPriorityQueue } from './DomainPriorityQueue';
-import { errors } from '../../../../../common/errors';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../../common/schemas/getCommandWithMetadataSchema';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../../stores/lockStore/LockStore';
+import { Parser } from 'validate-value';
 import { PublishDomainEvents } from '../../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../../common/domain/Repository';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
+
+const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
 
 const processCommand = async function ({ repository, priorityQueue, publishDomainEvents }: {
   application: Application;
@@ -29,11 +31,12 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
   );
 
   try {
-    try {
-      new Value(getCommandWithMetadataSchema()).validate(command, { valueName: 'command' });
-    } catch (ex: unknown) {
-      throw new errors.CommandMalformed((ex as Error).message);
-    }
+    commandWithMetadataParser.parse(
+      command,
+      { valueName: 'command' }
+    ).unwrapOrThrow(
+      (err): Error => new errors.CommandMalformed(err.message)
+    );
 
     const aggregateInstance = await repository.getAggregateInstance({
       aggregateIdentifier: command.aggregateIdentifier

@@ -1,13 +1,15 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { errors } from '../../../common/errors';
 import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getJwtSchema } from './getJwtSchema';
+import { Parser } from 'validate-value';
 import { TokenOptions } from './TokenOptions';
 import { validateExpiration } from './validateExpiration';
-import { Value } from 'validate-value';
 import { IdentityProvider, Limes } from 'limes';
+import * as errors from '../../../common/errors';
+
+const jwtParser = new Parser(getJwtSchema());
 
 const tokenCommand = function (): Command<TokenOptions> {
   return {
@@ -113,14 +115,16 @@ const tokenCommand = function (): Command<TokenOptions> {
           throw new errors.ClaimsMalformed();
         }
 
-        const value = new Value(getJwtSchema());
+        jwtParser.parse(
+          claims,
+          { valueName: 'jwt' }
+        ).unwrapOrThrow(
+          (err): Error => {
+            buntstift.info('Claims malformed.');
 
-        try {
-          value.validate(claims, { valueName: 'jwt' });
-        } catch (ex: unknown) {
-          buntstift.info('Claims malformed.');
-          throw ex;
-        }
+            return err;
+          }
+        );
 
         const subject = claims.sub;
         const payload = { ...claims, sub: undefined };

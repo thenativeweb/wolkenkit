@@ -1,7 +1,7 @@
-import { errors } from '../errors';
 import { exec } from 'shelljs';
 import { exists } from '../utils/fs/exists';
 import { oneLine } from 'common-tags';
+import * as errors from '../errors';
 
 const compileWithTypeScript = async function ({
   sourceDirectory,
@@ -24,9 +24,7 @@ const compileWithTypeScript = async function ({
   `, { cwd: sourceDirectory });
 
   if (code !== 0) {
-    throw new errors.CompilationFailed('Compilation failed.', {
-      data: { stdout, stderr }
-    });
+    throw new errors.CompilationFailed({ message: 'Compilation failed.', data: { stdout, stderr }});
   }
 };
 

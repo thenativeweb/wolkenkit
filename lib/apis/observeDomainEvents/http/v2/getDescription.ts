@@ -1,12 +1,12 @@
 import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getDomainEventsDescriptionSchema } from '../../../../common/schemas/getDomainEventsDescriptionSchema';
-import { Value } from 'validate-value';
+import { Parser } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { Request, Response } from 'express';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -23,7 +23,7 @@ const getDescription = {
   getHandler ({ application }: {
     application: Application;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(getDescription.response.body);
+    const responseBodyParser = new Parser(getDescription.response.body);
 
     const applicationDescription = getApplicationDescription({ application });
 
@@ -31,11 +31,14 @@ const getDescription = {
       try {
         const response = applicationDescription.domainEvents;
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.send(response);
       } catch (ex: unknown) {
-        const error = new errors.UnknownError(undefined, { cause: ex as Error });
+        const error = new errors.UnknownError({ cause: ex as Error });
 
         logger.error(
           'An unknown error occured.',

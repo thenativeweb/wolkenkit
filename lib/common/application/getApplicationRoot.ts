@@ -1,7 +1,7 @@
-import { errors } from '../errors';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
+import * as errors from '../errors';
 
 const getApplicationRoot = async function ({ directory }: {
   directory: string;

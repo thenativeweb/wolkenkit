@@ -1,13 +1,13 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -40,16 +40,17 @@ const getAggregateIdentifiersByName = {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const querySchema = new Value(getAggregateIdentifiersByName.request.query),
-          responseBodySchema = new Value(getAggregateIdentifiersByName.response.body);
+    const queryParser = new Parser(getAggregateIdentifiersByName.request.query),
+          responseBodyParser = new Parser(getAggregateIdentifiersByName.response.body);
 
     return async function (req, res): Promise<any> {
       try {
-        try {
-          querySchema.validate(req.query, { valueName: 'requestQuery' });
-        } catch (ex: unknown) {
-          throw new errors.RequestMalformed((ex as Error).message);
-        }
+        queryParser.parse(
+          req.query,
+          { valueName: 'requestQuery' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.RequestMalformed(err.message)
+        );
 
         res.startStream({ heartbeatInterval });
 
@@ -60,7 +61,10 @@ const getAggregateIdentifiersByName = {
 
         for await (const aggregateIdentifier of aggregateIdentifierStream) {
           try {
-            responseBodySchema.validate(aggregateIdentifier, { valueName: 'responseBody' });
+            responseBodyParser.parse(
+              aggregateIdentifier,
+              { valueName: 'responseBody' }
+            ).unwrapOrThrow();
 
             writeLine({ res, data: aggregateIdentifier });
           } catch {
@@ -75,7 +79,7 @@ const getAggregateIdentifiersByName = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.RequestMalformed.code: {

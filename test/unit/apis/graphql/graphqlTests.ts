@@ -1,6 +1,7 @@
 import { ApolloClient } from 'apollo-client';
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
@@ -11,7 +12,6 @@ import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscri
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
@@ -38,9 +38,10 @@ import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import * as errors from '../../../../lib/common/errors';
 
 suite('graphql', function (): void {
-  this.timeout(15_000);
+  this.timeout(30_000);
 
   const channelForNotifications = 'notifications',
         identityProviders = [ identityProvider ];
@@ -60,7 +61,7 @@ suite('graphql', function (): void {
       subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
-    const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexQueries', language: 'javascript' });
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await createDomainEventStore({
@@ -159,7 +160,7 @@ suite('graphql', function (): void {
           webSocketEndpoint: '/v2/'
         });
       }).is.throwingAsync<CustomError>((ex): boolean =>
-        ex.code === 'EGRAPHQLERROR' && ex.message === 'GraphQL schema validation failed.');
+        ex.code === errors.GraphQlError.code && ex.message === 'GraphQL schema validation failed.');
     });
   });
 
@@ -301,7 +302,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response.data).is.atLeast({ cancel: { success: true }});
+      assert.that(response.data as object).is.atLeast({ cancel: { success: true }});
       assert.that(cancelledCommands.length).is.equalTo(1);
       assert.that(cancelledCommands[0]).is.atLeast(commandIdentifier);
     });
@@ -390,7 +391,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response.data).is.atLeast({ cancel: { success: false }});
+      assert.that(response.data as object).is.atLeast({ cancel: { success: false }});
     });
   });
 
@@ -1191,7 +1192,7 @@ suite('graphql', function (): void {
 
       const response = await client.query({ query });
 
-      assert.that(response.data).is.atLeast({
+      assert.that(response.data as object).is.atLeast({
         sampleView: {
           all: [
             {
@@ -1205,6 +1206,66 @@ suite('graphql', function (): void {
           ]
         }
       });
+    });
+  });
+
+  suite('various', (): void => {
+    test('sets the expected cors header.', async (): Promise<void> => {
+      const corsOrigin = 'some.cool.domain';
+
+      ({ api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
+        identityProviders,
+        corsOrigin: [ corsOrigin ],
+        application,
+        handleCommand: {
+          async onReceiveCommand ({ command }): Promise<void> {
+            receivedCommands.push(command);
+          },
+          async onCancelCommand ({ commandIdentifierWithClient }): Promise<void> {
+            cancelledCommands.push(commandIdentifierWithClient);
+          }
+        },
+        observeDomainEvents: {
+          repository
+        },
+        observeNotifications: {
+          subscriber,
+          channelForNotifications
+        },
+        queryView: true,
+        enableIntegratedClient: false,
+        webSocketEndpoint: '/v2/'
+      }));
+
+      const server = http.createServer(api);
+
+      [ socket ] = await getSocketPaths({ count: 1 });
+
+      await initializeGraphQlOnServer({ server });
+
+      await new Promise<void>((resolve, reject): void => {
+        server.listen(socket, (): void => {
+          resolve();
+        });
+
+        server.on('error', (err): void => {
+          reject(err);
+        });
+      });
+
+      const { headers } = await axios({
+        url: 'http://localhost/v2/',
+        validateStatus: (): boolean => true,
+        socketPath: socket,
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: corsOrigin
+        },
+        method: 'POST',
+        data: { query: '{ sampleView { all { id }}}' }
+      });
+
+      assert.that(headers['access-control-allow-origin']).is.equalTo(corsOrigin);
     });
   });
 });

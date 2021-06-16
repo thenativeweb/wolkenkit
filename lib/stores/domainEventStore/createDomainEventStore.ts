@@ -1,11 +1,11 @@
 import { DomainEventStore } from './DomainEventStore';
 import { DomainEventStoreOptions } from './DomainEventStoreOptions';
-import { errors } from '../../common/errors';
 import { InMemoryDomainEventStore } from './InMemory';
 import { MongoDbDomainEventStore } from './MongoDb';
 import { MySqlDomainEventStore } from './MySql';
 import { PostgresDomainEventStore } from './Postgres';
 import { SqlServerDomainEventStore } from './SqlServer';
+import * as errors from '../../common/errors';
 
 const createDomainEventStore = async function (
   options: DomainEventStoreOptions

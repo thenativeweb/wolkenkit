@@ -3,7 +3,6 @@ import { CollectionNames } from './CollectionNames';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { errors } from '../../../common/errors';
 import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { retry } from 'retry-ignore-abort';
@@ -14,6 +13,7 @@ import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient, MongoError } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 import { PassThrough, Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 class MongoDbDomainEventStore implements DomainEventStore {
   protected client: MongoClient;

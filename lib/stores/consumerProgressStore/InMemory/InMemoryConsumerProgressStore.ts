@@ -1,8 +1,8 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
-import { errors } from '../../../common/errors';
 import { InMemoryConsumerProgressStoreOptions } from './InMemoryConsumerProgressStoreOptions';
 import { IsReplaying } from '../IsReplaying';
+import * as errors from '../../../common/errors';
 
 class InMemoryConsumerProgressStore implements ConsumerProgressStore {
   protected progress: Record<string, Record<string, { revision: number; isReplaying: IsReplaying } | undefined> | undefined>;

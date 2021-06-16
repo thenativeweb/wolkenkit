@@ -1,14 +1,14 @@
 import { AskInfrastructure } from '../elements/AskInfrastructure';
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseView } from '../parsers/parseView';
 import path from 'path';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { validateViewDefinition } from '../validators/validateViewDefinition';
 import { View } from '../elements/View';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
+import * as errors from '../errors';
 
 const getViewsDefinition = async function ({ viewsDirectory }: {
   viewsDirectory: string;
@@ -43,22 +43,20 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       rawView = (await import(viewPath)).default;
     } catch (ex: unknown) {
       if (ex instanceof SyntaxError) {
-        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/views/${viewName}'.`, { cause: ex });
+        throw new errors.ApplicationMalformed({ message: `Syntax error in '<app>/build/server/views/${viewName}'.`, cause: ex });
       }
       if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
-        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/views/${viewName}'.`, { cause: ex as Error });
+        throw new errors.ApplicationMalformed({ message: `Missing import in '<app>/build/server/views/${viewName}'.`, cause: ex as Error });
       }
 
       throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
     }
 
-    try {
-      validateViewDefinition({
-        viewDefinition: rawView
-      });
-    } catch (ex: unknown) {
-      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${(ex as Error).message}`);
-    }
+    parseView({
+      viewDefinition: rawView
+    }).unwrapOrThrow(
+      (err): Error => new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${err.message}`)
+    );
 
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];
 

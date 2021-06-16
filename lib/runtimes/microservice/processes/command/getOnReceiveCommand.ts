@@ -1,9 +1,9 @@
 import { CommandDispatcher } from './CommandDispatcher';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { retry } from 'retry-ignore-abort';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -39,7 +39,8 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
         withLogMetadata('runtime', 'microservice/command', { command, error: ex })
       );
 
-      throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
+      throw new errors.RequestFailed({
+        message: 'Failed to send command to command dispatcher.',
         cause: ex as Error,
         data: { command }
       });

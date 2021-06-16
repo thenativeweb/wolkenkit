@@ -2,7 +2,6 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleCommand/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -12,6 +11,7 @@ import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemId
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('handleCommand/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -288,7 +288,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        assert.that(data).is.atLeast({
+        assert.that(data as object).is.atLeast({
           id: receivedCommands[0].id
         });
       });

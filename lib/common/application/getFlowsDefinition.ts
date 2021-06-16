@@ -1,12 +1,12 @@
-import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { FlowDefinition } from './FlowDefinition';
 import { FlowEnhancer } from '../../tools/FlowEnhancer';
 import { FlowsDefinition } from './FlowsDefinition';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
+import { parseFlow } from '../parsers/parseFlow';
 import path from 'path';
-import { validateFlowDefinition } from '../validators/validateFlowDefinition';
+import * as errors from '../errors';
 
 const getFlowsDefinition = async function ({ flowsDirectory }: {
   flowsDirectory: string;
@@ -41,22 +41,20 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
       rawFlow = (await import(flowPath)).default;
     } catch (ex: unknown) {
       if (ex instanceof SyntaxError) {
-        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/flows/${flowName}'.`, { cause: ex });
+        throw new errors.ApplicationMalformed({ message: `Syntax error in '<app>/build/server/flows/${flowName}'.`, cause: ex });
       }
       if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
-        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/flows/${flowName}'.`, { cause: ex as Error });
+        throw new errors.ApplicationMalformed({ message: `Missing import in '<app>/build/server/flows/${flowName}'.`, cause: ex as Error });
       }
 
       throw new errors.FileNotFound(`No flow definition in '<app>/build/server/flows/${flowName}' found.`);
     }
 
-    try {
-      validateFlowDefinition({
-        flowDefinition: rawFlow
-      });
-    } catch (ex: unknown) {
-      throw new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/server/flows/${flowName}' is malformed: ${(ex as Error).message}`);
-    }
+    parseFlow({
+      flowDefinition: rawFlow
+    }).unwrapOrThrow(
+      (err): Error => new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/server/flows/${flowName}' is malformed: ${err.message}`)
+    );
 
     const flowEnhancers = (rawFlow.enhancers || []) as FlowEnhancer[];
 

@@ -1,8 +1,8 @@
 import { Application } from 'express';
 import { assert } from 'assertthat';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/publishMessage/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
+import * as errors from '../../../../lib/common/errors';
 
 suite('publishMessage/http', (): void => {
   suite('/v2', (): void => {

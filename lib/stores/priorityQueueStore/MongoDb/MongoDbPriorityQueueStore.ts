@@ -1,6 +1,5 @@
 import { CollectionNames } from './CollectionNames';
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
-import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
@@ -15,6 +14,7 @@ import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
+import * as errors from '../../../common/errors';
 
 class MongoDbPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;

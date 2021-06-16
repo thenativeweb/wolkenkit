@@ -1,4 +1,4 @@
-import { errors } from '../../../../common/errors';
+import * as errors from '../../../../common/errors';
 
 const getVersionNumber = function ({ version }: {
   version: string;

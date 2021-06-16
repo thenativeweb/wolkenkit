@@ -3,13 +3,13 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/performReplay/http/v2/Client';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('performReplay/http/Client', (): void => {
   let application: Application;

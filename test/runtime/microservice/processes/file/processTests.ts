@@ -2,7 +2,6 @@ import { assert } from 'assertthat';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/view/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/view/configurationDefinition';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../../lib/common/errors';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
@@ -13,6 +12,7 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import streamToString from 'stream-to-string';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
+import * as errors from '../../../../../lib/common/errors';
 
 suite('file process', function (): void {
   this.timeout(60_000);

@@ -2,9 +2,9 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { assert } from 'assertthat';
 import { ConsumerProgressStore } from '../../../../lib/stores/consumerProgressStore/ConsumerProgressStore';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createConsumerProgressStore }: {
@@ -157,7 +157,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
           aggregateIdentifier,
           revision: 1
         });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.RevisionTooLow.code);
+      }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.RevisionTooLow.code);
     });
 
     test('does not update the revision if the revision decreased.', async (): Promise<void> => {

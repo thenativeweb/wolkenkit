@@ -5,11 +5,11 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('writeDomainEventStore/http', (): void => {
   suite('/v2', (): void => {

@@ -5,10 +5,10 @@ import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { toArray } from 'streamtoarray';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {

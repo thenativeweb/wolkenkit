@@ -25,8 +25,8 @@ suite('static/http', (): void => {
 
       assert.that(status).is.equalTo(200);
       assert.that(headers['content-type']).is.equalTo('text/html; charset=UTF-8');
-      assert.that(data).is.startingWith('<!doctype html>\n<html>');
-      assert.that(data).is.endingWith('</html>\n');
+      assert.that(data as string).is.startingWith('<!doctype html>\n<html>');
+      assert.that(data as string).is.endingWith('</html>\n');
     });
   });
 });

@@ -1,13 +1,13 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
+import { Parser } from 'validate-value';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateContentType } from '../../../base/validateContentType';
-import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -29,8 +29,8 @@ const storeSnapshot = {
   }: {
     domainEventStore: DomainEventStore;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(storeSnapshot.request.body),
-          responseBodySchema = new Value(storeSnapshot.response.body);
+    const requestBodyParser = new Parser(storeSnapshot.request.body),
+          responseBodyParser = new Parser(storeSnapshot.response.body);
 
     return async function (req, res): Promise<any> {
       try {
@@ -41,23 +41,27 @@ const storeSnapshot = {
 
         const snapshot = req.body;
 
-        try {
-          requestBodySchema.validate(snapshot, { valueName: 'requestBody' });
-        } catch (ex: unknown) {
-          throw new errors.SnapshotMalformed((ex as Error).message);
-        }
+        requestBodyParser.parse(
+          snapshot,
+          { valueName: 'requestBody' }
+        ).unwrapOrThrow(
+          (err): Error => new errors.SnapshotMalformed(err.message)
+        );
 
         await domainEventStore.storeSnapshot({ snapshot });
 
         const response = {};
 
-        responseBodySchema.validate(response, { valueName: 'responseBody' });
+        responseBodyParser.parse(
+          response,
+          { valueName: 'responseBody' }
+        ).unwrapOrThrow();
 
         res.status(200).json(response);
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ContentTypeMismatch.code: {

@@ -35,15 +35,16 @@ import { QueryHandlerReturnsValue } from './common/elements/QueryHandlerReturnsV
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
 import { createSandbox as sandbox } from './common/utils/test/sandbox/createSandbox';
-import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
 import { View } from './common/elements/View';
+import { ApiSchema, Schema } from './common/elements/Schema';
 
 export {
   Aggregate,
   AggregateService,
   AggregatesService,
+  ApiSchema,
   Application,
   AskInfrastructure,
   ClientService,
@@ -65,6 +66,7 @@ export {
   Hooks,
   loadApplication,
   GetInitialState,
+  Schema,
   LockService,
   LoggerService,
   Notification,
@@ -78,7 +80,6 @@ export {
   QueryOptions,
   QueryResultItem,
   sandbox,
-  Schema,
   State,
   TellInfrastructure,
   View

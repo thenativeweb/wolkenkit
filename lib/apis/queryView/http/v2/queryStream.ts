@@ -1,6 +1,5 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
-import { errors } from '../../../../common/errors';
 import { executeStreamQueryHandler } from '../../../../common/domain/executeStreamQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -11,6 +10,7 @@ import { validateQueryHandlerIdentifier } from '../../../../common/validators/va
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 
@@ -67,7 +67,7 @@ const queryStream = {
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
+          new errors.UnknownError({ cause: ex as Error });
 
         switch (error.code) {
           case errors.ViewNotFound.code:

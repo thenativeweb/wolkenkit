@@ -2,7 +2,6 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/queryView/http/v2/Client';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/queryView/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -11,6 +10,7 @@ import { identityProvider } from '../../../shared/identityProvider';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('queryView/http/Client', (): void => {
   const identityProviders = [ identityProvider ];

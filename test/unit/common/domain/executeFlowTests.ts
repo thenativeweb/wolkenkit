@@ -9,7 +9,6 @@ import { createLockStore } from '../../../../lib/stores/lockStore/createLockStor
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { errors } from '../../../../lib/common/errors';
 import { executeFlow } from '../../../../lib/common/domain/executeFlow';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
 import { getCommandService } from '../../../../lib/common/services/getCommandService';
@@ -28,6 +27,7 @@ import { PerformReplay } from '../../../../lib/common/domain/PerformReplay';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 const issueCommandNoop = noop;
 const performReplayNoop: PerformReplay = async (): Promise<void> => {

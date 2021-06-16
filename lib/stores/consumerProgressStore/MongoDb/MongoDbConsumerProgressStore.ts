@@ -1,13 +1,13 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { CollectionNames } from './CollectionNames';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
-import { errors } from '../../../common/errors';
 import { IsReplaying } from '../IsReplaying';
 import { MongoDbConsumerProgressStoreOptions } from './MongoDbConsumerProgressStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
+import * as errors from '../../../common/errors';
 
 class MongoDbConsumerProgressStore implements ConsumerProgressStore {
   protected client: MongoClient;

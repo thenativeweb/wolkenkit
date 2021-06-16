@@ -2,11 +2,11 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../lib/common/validators/validateCommand';
+import * as errors from '../../../../lib/common/errors';
 
 suite('validateCommand', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

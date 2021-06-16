@@ -1,10 +1,10 @@
 import { buntstift } from 'buntstift';
 import { Client } from '../../../apis/getHealth/http/v2/Client';
 import { Command } from 'command-line-interface';
-import { errors } from '../../../common/errors';
 import { HealthOptions } from './HealthOptions';
 import { validatePort } from '../dev/validatePort';
 import { validateSocket } from '../dev/validateSocket';
+import * as errors from '../../../common/errors';
 
 const healthCommand = function (): Command<HealthOptions> {
   return {

@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -11,6 +10,7 @@ import { State } from '../../../../common/elements/State';
 import streamToString from 'stream-to-string';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline, Readable } from 'stream';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

@@ -1,13 +1,13 @@
 import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import * as errors from '../../../../lib/common/errors';
 
 suite('performReplay/http', (): void => {
   let application: Application;

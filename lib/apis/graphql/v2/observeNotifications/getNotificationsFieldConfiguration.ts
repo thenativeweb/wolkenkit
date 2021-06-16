@@ -1,17 +1,18 @@
+import { ApiSchema } from '../../../../common/elements/Schema';
 import { Application } from '../../../../common/application/Application';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
-import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getGraphqlSchemaFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { Notification } from '../../../../common/elements/Notification';
 import { ResolverContext } from '../ResolverContext';
-import { Schema } from '../../../../common/elements/Schema';
 import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { validateNotification } from '../../../../common/validators/validateNotification';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
-import { buildSchema, GraphQLFieldConfig, GraphQLObjectType } from 'graphql';
+import { GraphQLFieldConfig, GraphQLOutputType } from 'graphql';
 
 const logger = flaschenpost.getLogger();
 
@@ -19,16 +20,17 @@ const getNotificationsFieldConfiguration = function ({ application, notification
   application: Application;
   notificationEmitter: SpecializedEventEmitter<Notification>;
 }): GraphQLFieldConfig<any, ResolverContext> {
-  const notificationSchemaForGraphQl: Schema = {
+  const notificationSchemaForGraphQl: ApiSchema = {
     type: 'object',
     properties: {
       name: { type: 'string' },
       data: { type: 'string' }
     },
-    required: [ 'name', 'data' ]
+    required: [ 'name', 'data' ],
+    additionalProperties: false
   };
 
-  const notificationGraphQl = getGraphqlFromJsonSchema({
+  const notificationGraphqlTypeDefinitions = getGraphqlSchemaFromJsonSchema({
     schema: notificationSchemaForGraphQl,
     rootName: `notification`
   });
@@ -48,7 +50,7 @@ const getNotificationsFieldConfiguration = function ({ application, notification
   }
 
   return {
-    type: buildSchema(notificationGraphQl.typeDefinitions.join('\n')).getType(notificationGraphQl.typeName) as GraphQLObjectType,
+    type: instantiateGraphqlTypeDefinitions(notificationGraphqlTypeDefinitions) as GraphQLOutputType,
     description,
     async * subscribe (
       innerSource,

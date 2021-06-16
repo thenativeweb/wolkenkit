@@ -1,10 +1,10 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
-import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

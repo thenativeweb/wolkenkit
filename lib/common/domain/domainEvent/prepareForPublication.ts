@@ -3,7 +3,6 @@ import { CustomError } from 'defekt';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
-import { errors } from '../../errors';
 import { filterDomainEvent } from './filterDomainEvent';
 import { flaschenpost } from 'flaschenpost';
 import { isDomainEventAuthorized } from './isDomainEventAuthorized';
@@ -13,6 +12,7 @@ import { Repository } from '../Repository';
 import { Services } from './Services';
 import { State } from '../../elements/State';
 import { withLogMetadata } from '../../utils/logging/withLogMetadata';
+import * as errors from '../../errors';
 
 const logger = flaschenpost.getLogger();
 

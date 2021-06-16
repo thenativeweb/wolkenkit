@@ -5,7 +5,6 @@ import { CommandService } from '../services/CommandService';
 import { ConsumerProgressStore } from '../../stores/consumerProgressStore/ConsumerProgressStore';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
-import { errors } from '../errors';
 import { flaschenpost } from 'flaschenpost';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
@@ -13,6 +12,7 @@ import { NotificationService } from '../services/NotificationService';
 import { PerformReplay } from './PerformReplay';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { withLogMetadata } from '../utils/logging/withLogMetadata';
+import * as errors from '../errors';
 
 const logger = flaschenpost.getLogger();
 

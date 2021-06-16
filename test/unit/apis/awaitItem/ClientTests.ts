@@ -6,7 +6,6 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { CustomError } from 'defekt';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
-import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
@@ -15,13 +14,16 @@ import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InM
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import { Parser } from 'validate-value';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { v4 } from 'uuid';
-import { Value } from 'validate-value';
+import * as errors from '../../../../lib/common/errors';
+
+const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
 
 suite('awaitItem/http/Client', (): void => {
   suite('/v2', (): void => {
@@ -51,7 +53,7 @@ suite('awaitItem/http/Client', (): void => {
         newItemSubscriber,
         newItemSubscriberChannel,
         validateOutgoingItem ({ item }: { item: any }): void {
-          new Value(getCommandWithMetadataSchema()).validate(item);
+          commandWithMetadataParser.parse(item).unwrapOrThrow();
         }
       }));
     });

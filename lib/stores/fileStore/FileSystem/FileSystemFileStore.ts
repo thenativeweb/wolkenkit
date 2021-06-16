@@ -1,4 +1,3 @@
-import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
@@ -8,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { pipeline as pipelineCallback, Readable } from 'stream';
+import * as errors from '../../../common/errors';
 
 const pipeline = promisify(pipelineCallback);
 

@@ -1,5 +1,4 @@
 import { DomainEventDescription } from '../../../../common/application/DomainEventDescription';
-import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -7,6 +6,7 @@ import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTrans
 import streamToString from 'stream-to-string';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
+import * as errors from '../../../../common/errors';
 
 const logger = flaschenpost.getLogger();
 

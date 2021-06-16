@@ -7,7 +7,6 @@ import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand'
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
 import { CustomError } from 'defekt';
-import { errors } from '../../../../../lib/common/errors';
 import fetch from 'node-fetch';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getSocketPaths } from '../../../../shared/getSocketPaths';
@@ -33,6 +32,7 @@ import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import * as errors from '../../../../../lib/common/errors';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -170,7 +170,7 @@ suite('main process', function (): void {
           [
             (data): void => {
               try {
-                assert.that(data).is.atLeast({
+                assert.that(data as object).is.atLeast({
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -182,7 +182,7 @@ suite('main process', function (): void {
             },
             (data): void => {
               try {
-                assert.that(data).is.atLeast({
+                assert.that(data as object).is.atLeast({
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -234,7 +234,7 @@ suite('main process', function (): void {
         [
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 aggregateIdentifier,
                 name: 'triggeredFlow',
                 data: { flowName: 'neverFlow' }
@@ -246,7 +246,7 @@ suite('main process', function (): void {
           },
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 aggregateIdentifier,
                 name: 'executedFromFlow',
                 data: {
@@ -442,7 +442,7 @@ suite('main process', function (): void {
       }
 
       assert.that(resultItems.length).is.equalTo(1);
-      assert.that(resultItems[0]).is.atLeast({
+      assert.that(resultItems[0] as object).is.atLeast({
         aggregateIdentifier: {
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate' }
@@ -515,7 +515,7 @@ suite('main process', function (): void {
         [
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'flowSampleFlowUpdated',
                 data: {}
               });
@@ -526,7 +526,7 @@ suite('main process', function (): void {
           },
           async (data): Promise<void> => {
             try {
-              assert.that(data).is.atLeast({
+              assert.that(data as object).is.atLeast({
                 name: 'viewSampleViewUpdated',
                 data: {}
               });

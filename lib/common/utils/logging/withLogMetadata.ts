@@ -1,4 +1,4 @@
-import { errors } from '../../errors';
+import * as errors from '../../errors';
 
 type SourceType = 'api' | 'api-client' | 'runtime' | 'store' | 'common' | 'cli' | 'messaging';
 
