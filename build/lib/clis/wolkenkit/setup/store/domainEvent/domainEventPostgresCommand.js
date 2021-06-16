@@ -35,7 +35,7 @@ const domainEventPostgresCommand = function () {
             },
             {
                 name: 'encrypt-connection',
-                type: 'boolean'
+                type: 'object'
             },
             {
                 name: 'table-name-domain-events',

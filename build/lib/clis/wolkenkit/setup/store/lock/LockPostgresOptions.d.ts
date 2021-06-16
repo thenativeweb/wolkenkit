@@ -6,5 +6,5 @@ export interface LockPostgresOptions extends RootOptions {
     password: string;
     database: string;
     'table-name-locks': string;
-    'encrypt-connection'?: boolean;
+    'encrypt-connection'?: boolean | object;
 }

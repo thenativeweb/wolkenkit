@@ -37,7 +37,7 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       },
       {
         name: 'encrypt-connection',
-        type: 'boolean'
+        type: 'object'
       },
       {
         name: 'table-name-progress',

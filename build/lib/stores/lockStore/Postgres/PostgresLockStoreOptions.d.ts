@@ -6,6 +6,6 @@ export interface PostgresLockStoreOptions {
     userName: string;
     password: string;
     database: string;
-    encryptConnection?: boolean;
+    encryptConnection?: boolean | object;
     tableNames: TableNames;
 }

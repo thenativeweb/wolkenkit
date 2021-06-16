@@ -10,6 +10,6 @@ export interface PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier> {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: boolean;
+  encryptConnection?: boolean | object;
   tableNames: TableNames;
 }

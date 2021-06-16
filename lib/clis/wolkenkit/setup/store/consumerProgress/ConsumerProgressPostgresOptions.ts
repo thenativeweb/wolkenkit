@@ -7,5 +7,5 @@ export interface ConsumerProgressPostgresOptions extends RootOptions {
   password: string;
   database: string;
   'table-name-progress': string;
-  'encrypt-connection'?: boolean;
+  'encrypt-connection'?: boolean | object;
 }

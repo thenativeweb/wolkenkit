@@ -37,7 +37,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       },
       {
         name: 'encrypt-connection',
-        type: 'boolean'
+        type: 'object'
       },
       {
         name: 'table-name-locks',

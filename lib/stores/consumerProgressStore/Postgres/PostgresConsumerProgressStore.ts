@@ -46,7 +46,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     userName,
     password,
     database,
-    encryptConnection,
+    encryptConnection = { rejectUnauthorized: false },
     tableNames
   }: PostgresConsumerProgressStoreOptions): Promise<PostgresConsumerProgressStore> {
     const pool = new Pool({
