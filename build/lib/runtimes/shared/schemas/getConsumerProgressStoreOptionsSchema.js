@@ -58,7 +58,14 @@ const getConsumerProgressStoreOptionsSchema = function () {
                     userName: { type: 'string', minLength: 1 },
                     password: { type: 'string', minLength: 1 },
                     database: { type: 'string', minLength: 1 },
-                    encryptConnection: { type: 'boolean' },
+                    encryptConnection: {
+                        type: 'object',
+                        properties: {
+                            rejectUnauthorized: { type: 'boolean' },
+                        },
+                        required: ['rejectUnauthorized'],
+                        additionalProperties: false
+                    },
                     tableNames: {
                         type: 'object',
                         properties: {

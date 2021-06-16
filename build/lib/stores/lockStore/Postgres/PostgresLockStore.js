@@ -40,7 +40,7 @@ class PostgresLockStore {
         });
         return database;
     }
-    static async create({ hostName, port, userName, password, database, encryptConnection = { rejectUnauthorized: false }, tableNames }) {
+    static async create({ hostName, port, userName, password, database, encryptConnection, tableNames }) {
         const pool = new pg_1.Pool({
             host: hostName,
             port,
