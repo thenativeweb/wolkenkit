@@ -8,5 +8,5 @@ export interface PriorityQueuePostgresOptions extends RootOptions {
   database: string;
   'table-name-items': string;
   'table-name-priority-queue': string;
-  'encrypt-connection'?: boolean | object;
+  'encrypt-connection'?: object;
 }

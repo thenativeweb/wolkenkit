@@ -7,6 +7,6 @@ export interface PostgresDomainEventStoreOptions {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: boolean | object;
+  encryptConnection?: object;
   tableNames: TableNames;
 }

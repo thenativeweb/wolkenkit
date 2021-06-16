@@ -7,6 +7,6 @@ export interface PostgresConsumerProgressStoreOptions {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: boolean | object;
+  encryptConnection?: object;
   tableNames: TableNames;
 }
