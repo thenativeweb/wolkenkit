@@ -2,6 +2,7 @@
 /node_modules/
 
 # Build artefacts
+/build/
 /websites/**/.next
 /websites/**/out
 
