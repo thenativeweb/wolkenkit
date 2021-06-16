@@ -14,7 +14,6 @@ suite('Postgres', (): void => {
         tableNames: {
           locks: `locks_${suffix}`
         },
-        encryptConnection: false
       });
     }
   });

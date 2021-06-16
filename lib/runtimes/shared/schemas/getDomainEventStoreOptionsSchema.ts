@@ -64,8 +64,10 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
             type: 'object',
             properties: {
               rejectUnauthorized: { type: 'boolean' },
+              ca: { type: 'string' },
+              key: { type: 'string' },
+              cert: { type: 'string' },
             },
-            required: [ 'rejectUnauthorized' ],
             additionalProperties: false
           },
           tableNames: {
