@@ -1,0 +1,13 @@
+.swagger-ui .topbar {
+    background-color: #222;
+}
+.swagger-ui .topbar .topbar-wrapper > .link img {
+    display: none;
+}
+.swagger-ui .topbar .topbar-wrapper > .link {
+    height: 48px;
+    background-image: url("wolkenkit.svg");
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+}

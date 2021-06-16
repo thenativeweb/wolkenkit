@@ -1,0 +1,1 @@
+{"version":3,"file":"validateExpiration.js","sourceRoot":"","sources":["../../../../../lib/clis/wolkenkit/token/validateExpiration.ts"],"names":[],"mappings":";;;AAAA,MAAM,kBAAkB,GAAG,UAAU,KAAa;IAChD,IAAI,KAAK,GAAG,CAAC,EAAE;QACb,MAAM,IAAI,KAAK,CAAC,oCAAoC,CAAC,CAAC;KACvD;AACH,CAAC,CAAC;AAEO,gDAAkB"}

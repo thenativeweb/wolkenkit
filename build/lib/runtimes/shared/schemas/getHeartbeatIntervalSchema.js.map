@@ -1,0 +1,1 @@
+{"version":3,"file":"getHeartbeatIntervalSchema.js","sourceRoot":"","sources":["../../../../../lib/runtimes/shared/schemas/getHeartbeatIntervalSchema.ts"],"names":[],"mappings":";;;AAEA,MAAM,0BAA0B,GAAG;IACjC,OAAO;QACL,IAAI,EAAE,SAAS;QACf,OAAO,EAAE,KAAM;KAChB,CAAC;AACJ,CAAC,CAAC;AAEO,gEAA0B"}

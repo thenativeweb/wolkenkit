@@ -1,0 +1,1 @@
+{"version":3,"file":"getProtocolSchema.js","sourceRoot":"","sources":["../../../../../lib/runtimes/shared/schemas/getProtocolSchema.ts"],"names":[],"mappings":";;;AAEA,MAAM,iBAAiB,GAAG;IACxB,OAAO;QACL,IAAI,EAAE,QAAQ;QACd,IAAI,EAAE,CAAE,MAAM,EAAE,OAAO,CAAE;KAC1B,CAAC;AACJ,CAAC,CAAC;AAGA,8CAAiB"}

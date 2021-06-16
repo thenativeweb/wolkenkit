@@ -1,0 +1,1 @@
+{"version":3,"file":"getJwtSchema.js","sourceRoot":"","sources":["../../../../../lib/clis/wolkenkit/token/getJwtSchema.ts"],"names":[],"mappings":";;;AAEA,MAAM,YAAY,GAAG;IACnB,OAAO;QACL,IAAI,EAAE,QAAQ;QACd,UAAU,EAAE;YACV,GAAG,EAAE,EAAE,IAAI,EAAE,QAAQ,EAAE,SAAS,EAAE,CAAC,EAAE;SACtC;QACD,QAAQ,EAAE,CAAE,KAAK,CAAE;QACnB,oBAAoB,EAAE,IAAI;KAC3B,CAAC;AACJ,CAAC,CAAC;AAEO,oCAAY"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"AggregateIdentifierType.js","sourceRoot":"","sources":["../../../../../../lib/apis/graphql/v2/handleCommand/AggregateIdentifierType.ts"],"names":[],"mappings":";;;AAAA,qCAA2E;AAE3E,MAAM,uBAAuB,GAAG,IAAI,2BAAiB,CAAC;IACpD,IAAI,EAAE,2BAA2B;IACjC,MAAM,EAAE;QACN,EAAE,EAAE;YACF,IAAI,EAAE,IAAI,wBAAc,CAAC,uBAAa,CAAC;SACxC;KACF;CACF,CAAC,CAAC;AAEM,0DAAuB"}

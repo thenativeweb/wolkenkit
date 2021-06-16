@@ -1,0 +1,1 @@
+{"version":3,"file":"getCorsSchema.js","sourceRoot":"","sources":["../../../../../lib/runtimes/shared/schemas/getCorsSchema.ts"],"names":[],"mappings":";;;AAEA,MAAM,aAAa,GAAG;IACpB,OAAO;QACL,KAAK,EAAE;YACL,EAAE,IAAI,EAAE,QAAQ,EAAE;YAClB,EAAE,IAAI,EAAE,OAAO,EAAE,KAAK,EAAE,EAAE,IAAI,EAAE,QAAQ,EAAE,EAAC;SAC5C;KACF,CAAC;AACJ,CAAC,CAAC;AAGA,sCAAa"}

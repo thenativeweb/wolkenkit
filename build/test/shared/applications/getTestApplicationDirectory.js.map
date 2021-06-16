@@ -1,0 +1,1 @@
+{"version":3,"file":"getTestApplicationDirectory.js","sourceRoot":"","sources":["../../../../test/shared/applications/getTestApplicationDirectory.ts"],"names":[],"mappings":";;;;;;AAAA,gDAAwB;AAExB,MAAM,2BAA2B,GAAG,UAAU,EAAE,IAAI,EAAE,QAAQ,GAAG,YAAY,EAG5E;IACC,OAAO,cAAI,CAAC,IAAI,CAAC,SAAS,EAAE,QAAQ,EAAE,IAAI,CAAC,CAAC;AAC9C,CAAC,CAAC;AAEO,kEAA2B"}
