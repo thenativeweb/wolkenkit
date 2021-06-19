@@ -37,7 +37,7 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
       },
       {
         name: 'encrypt-connection',
-        type: 'object'
+        type: 'string'
       },
       {
         name: 'table-name-items',

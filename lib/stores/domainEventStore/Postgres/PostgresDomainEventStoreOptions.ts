@@ -1,3 +1,4 @@
+import { ConnectionOptions } from 'tls';
 import { TableNames } from './TableNames';
 
 export interface PostgresDomainEventStoreOptions {
@@ -7,6 +8,6 @@ export interface PostgresDomainEventStoreOptions {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: object;
+  encryptConnection?: boolean | ConnectionOptions;
   tableNames: TableNames;
 }

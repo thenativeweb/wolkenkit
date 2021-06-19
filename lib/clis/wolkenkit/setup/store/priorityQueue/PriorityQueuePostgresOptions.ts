@@ -1,3 +1,4 @@
+import { ConnectionOptions } from 'tls';
 import { RootOptions } from '../../../RootOptions';
 
 export interface PriorityQueuePostgresOptions extends RootOptions {
@@ -8,5 +9,5 @@ export interface PriorityQueuePostgresOptions extends RootOptions {
   database: string;
   'table-name-items': string;
   'table-name-priority-queue': string;
-  'encrypt-connection'?: object;
+  'encrypt-connection'?: boolean | ConnectionOptions;
 }

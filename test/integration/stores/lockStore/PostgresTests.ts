@@ -13,7 +13,8 @@ suite('Postgres', (): void => {
         ...connectionOptions.postgres,
         tableNames: {
           locks: `locks_${suffix}`
-        }
+        },
+        encryptConnection: false
       });
     }
   });

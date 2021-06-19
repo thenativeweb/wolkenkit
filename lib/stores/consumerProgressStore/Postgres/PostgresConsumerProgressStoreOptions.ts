@@ -1,3 +1,4 @@
+import { ConnectionOptions } from 'tls';
 import { TableNames } from './TableNames';
 
 export interface PostgresConsumerProgressStoreOptions {
@@ -7,6 +8,6 @@ export interface PostgresConsumerProgressStoreOptions {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: object;
+  encryptConnection?: boolean | ConnectionOptions;
   tableNames: TableNames;
 }

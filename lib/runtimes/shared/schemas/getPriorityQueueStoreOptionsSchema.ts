@@ -64,14 +64,19 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
           password: { type: 'string', minLength: 1 },
           database: { type: 'string', minLength: 1 },
           encryptConnection: {
-            type: 'object',
-            properties: {
-              rejectUnauthorized: { type: 'boolean' },
-              ca: { type: 'string' },
-              key: { type: 'string' },
-              cert: { type: 'string' }
-            },
-            additionalProperties: false
+            oneOf: [
+              { type: 'boolean' },
+              {
+                type: 'object',
+                properties: {
+                  rejectUnauthorized: { type: 'boolean' },
+                  ca: { type: 'string' },
+                  key: { type: 'string' },
+                  cert: { type: 'string' }
+                },
+                additionalProperties: false
+              }
+            ]
           },
           tableNames: {
             type: 'object',
