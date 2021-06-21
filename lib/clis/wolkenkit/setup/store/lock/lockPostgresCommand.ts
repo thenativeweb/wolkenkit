@@ -1,8 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
+import { ConnectionOptions } from 'tls';
 import { createLockStore } from '../../../../../stores/lockStore/createLockStore';
+import { getConnectionOptionsSchema } from '../../../../../common/schemas/getConnectionOptionsSchema';
 import { LockPostgresOptions } from './LockPostgresOptions';
 import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptions';
+import { parse } from 'validate-value';
 
 const lockPostgresCommand = function (): Command<LockPostgresOptions> {
   return {
@@ -52,7 +55,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       'user-name': userName,
       password,
       database,
-      'encrypt-connection': encryptConnection,
+      'encrypt-connection': rawEncryptConnection,
       'table-name-locks': tableNameLocks,
       verbose
     }}): Promise<void> {
@@ -61,6 +64,16 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
           withVerboseMode(verbose)
       );
       const stopWaiting = buntstift.wait();
+
+      let encryptConnection: ConnectionOptions | undefined;
+
+      if (rawEncryptConnection) {
+        encryptConnection = parse<ConnectionOptions>(
+          JSON.parse(rawEncryptConnection),
+          getConnectionOptionsSchema(),
+          { valueName: 'encryptConnection' }
+        ).unwrapOrThrow();
+      }
 
       const storeOptions: LockStoreOptions = {
         type: 'Postgres',

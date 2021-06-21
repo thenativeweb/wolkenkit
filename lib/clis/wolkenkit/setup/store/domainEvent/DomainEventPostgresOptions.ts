@@ -1,4 +1,3 @@
-import { ConnectionOptions } from 'tls';
 import { RootOptions } from '../../../RootOptions';
 
 export interface DomainEventPostgresOptions extends RootOptions {
@@ -9,5 +8,5 @@ export interface DomainEventPostgresOptions extends RootOptions {
   database: string;
   'table-name-domain-events': string;
   'table-name-snapshots': string;
-  'encrypt-connection'?: boolean | ConnectionOptions;
+  'encrypt-connection'?: string;
 }

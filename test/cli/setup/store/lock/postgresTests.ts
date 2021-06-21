@@ -44,4 +44,56 @@ suite('setup store lock postgres', function (): void {
 
     assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
   });
+
+  test(`fails if invalid 'encrypt-connection' options are given.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database
+    } = connectionOptions.postgresSsl;
+
+    const tableNameLocks = v4();
+
+    const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks} --encrypt-connection '{"not": "even close"}'`;
+    const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Unexpected additional property: not (at encryptConnection.not).');
+  });
+
+  test(`sets up a postgres database using ssl.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      encryptConnection
+    } = connectionOptions.postgresSsl;
+
+    const tableNameLocks = v4();
+    const encryptConnectionJson = JSON.stringify(encryptConnection);
+
+    const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks} --encrypt-connection '${encryptConnectionJson}'`;
+    const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL lock store.');
+
+    const pool = new Pool({
+      host: hostName,
+      port,
+      user: userName,
+      password,
+      database
+    });
+    const connection = await retry(async (): Promise<PoolClient> => await pool.connect());
+
+    const checkTableResult = await connection.query({
+      name: 'check table locks',
+      text: `SELECT to_regclass('${tableNameLocks}');`
+    });
+
+    assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+  });
 });

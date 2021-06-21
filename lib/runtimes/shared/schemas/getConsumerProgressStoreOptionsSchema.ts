@@ -1,7 +1,9 @@
+import { getConnectionOptionsSchema } from '../../../common/schemas/getConnectionOptionsSchema';
 import { getPortSchema } from './getPortSchema';
 import { Schema } from '../../../common/elements/Schema';
 
 const portSchema = getPortSchema();
+const connectionOptionsSchema = getConnectionOptionsSchema();
 
 const getConsumerProgressStoreOptionsSchema = function (): Schema {
   return {
@@ -58,21 +60,7 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
           userName: { type: 'string', minLength: 1 },
           password: { type: 'string', minLength: 1 },
           database: { type: 'string', minLength: 1 },
-          encryptConnection: {
-            oneOf: [
-              { type: 'boolean' },
-              {
-                type: 'object',
-                properties: {
-                  rejectUnauthorized: { type: 'boolean' },
-                  ca: { type: 'string' },
-                  key: { type: 'string' },
-                  cert: { type: 'string' }
-                },
-                additionalProperties: false
-              }
-            ]
-          },
+          encryptConnection: connectionOptionsSchema,
           tableNames: {
             type: 'object',
             properties: {

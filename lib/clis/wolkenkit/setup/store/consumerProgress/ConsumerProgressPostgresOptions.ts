@@ -1,4 +1,3 @@
-import { ConnectionOptions } from 'tls';
 import { RootOptions } from '../../../RootOptions';
 
 export interface ConsumerProgressPostgresOptions extends RootOptions {
@@ -8,5 +7,5 @@ export interface ConsumerProgressPostgresOptions extends RootOptions {
   password: string;
   database: string;
   'table-name-progress': string;
-  'encrypt-connection'?: boolean | ConnectionOptions;
+  'encrypt-connection'?: string;
 }

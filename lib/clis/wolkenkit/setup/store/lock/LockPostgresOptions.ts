@@ -1,4 +1,3 @@
-import { ConnectionOptions } from 'tls';
 import { RootOptions } from '../../../RootOptions';
 
 export interface LockPostgresOptions extends RootOptions {
@@ -8,5 +7,5 @@ export interface LockPostgresOptions extends RootOptions {
   password: string;
   database: string;
   'table-name-locks': string;
-  'encrypt-connection'?: boolean | ConnectionOptions;
+  'encrypt-connection'?: string;
 }

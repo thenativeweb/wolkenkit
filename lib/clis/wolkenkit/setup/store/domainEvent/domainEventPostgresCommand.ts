@@ -1,8 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
+import { ConnectionOptions } from 'tls';
 import { createDomainEventStore } from '../../../../../stores/domainEventStore/createDomainEventStore';
 import { DomainEventPostgresOptions } from './DomainEventPostgresOptions';
 import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/DomainEventStoreOptions';
+import { getConnectionOptionsSchema } from '../../../../../common/schemas/getConnectionOptionsSchema';
+import { parse } from 'validate-value';
 
 const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptions> {
   return {
@@ -57,7 +60,7 @@ const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptio
       'user-name': userName,
       password,
       database,
-      'encrypt-connection': encryptConnection,
+      'encrypt-connection': rawEncryptConnection,
       'table-name-domain-events': tableNameDomainEvents,
       'table-name-snapshots': tableNameSnapshots,
       verbose
@@ -67,6 +70,16 @@ const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptio
           withVerboseMode(verbose)
       );
       const stopWaiting = buntstift.wait();
+
+      let encryptConnection: ConnectionOptions | undefined;
+
+      if (rawEncryptConnection) {
+        encryptConnection = parse<ConnectionOptions>(
+          JSON.parse(rawEncryptConnection),
+          getConnectionOptionsSchema(),
+          { valueName: 'encryptConnection' }
+        ).unwrapOrThrow();
+      }
 
       const storeOptions: DomainEventStoreOptions = {
         type: 'Postgres',
