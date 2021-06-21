@@ -211,7 +211,7 @@
     "run-script-os": "1.1.6",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.96",
+    "thenativeweb-ux": "5.9.3",
     "wait-for-signals": "1.2.3",
     "ws": "7.4.6"
   },
