@@ -179,7 +179,7 @@
     "partof": "3.0.3",
     "pg": "8.6.0",
     "pg-query-stream": "4.1.0",
-    "processenv": "3.0.5",
+    "processenv": "3.0.8",
     "retry-ignore-abort": "2.2.19",
     "runfork": "3.1.76",
     "saslprep": "1.0.3",
