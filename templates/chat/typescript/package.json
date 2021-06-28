@@ -5,7 +5,7 @@
   "dependencies": {
     "@types/mongodb": "3.6.17",
     "mongodb": "3.6.9",
-    "processenv": "3.0.5"
+    "processenv": "3.0.8"
   },
   "devDependencies": {
     "@types/mocha": "8.2.2",
