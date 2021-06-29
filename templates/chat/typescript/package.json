@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/mocha": "8.2.2",
     "@types/uuid": "8.3.0",
-    "assertthat": "6.3.1",
+    "assertthat": "6.3.5",
     "mocha": "8.4.0",
     "run-script-os": "1.1.6",
     "ts-node": "10.0.0",
