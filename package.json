@@ -166,7 +166,7 @@
     "helmet": "4.6.0",
     "ioredis": "4.27.6",
     "is-typescript": "4.0.3",
-    "isolated": "3.0.18",
+    "isolated": "3.0.21",
     "limes": "6.1.4",
     "lodash": "4.17.21",
     "minio": "7.0.18",
@@ -211,7 +211,7 @@
     "run-script-os": "1.1.6",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.96",
+    "thenativeweb-ux": "5.9.5",
     "wait-for-signals": "1.2.3",
     "ws": "7.4.6"
   },
