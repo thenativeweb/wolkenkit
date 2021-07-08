@@ -189,7 +189,7 @@
     "swagger-ui-express": "4.1.6",
     "untildify": "4.0.0",
     "uuid": "8.3.2",
-    "validate-value": "9.0.9"
+    "validate-value": "9.0.12"
   },
   "devDependencies": {
     "@types/react": "17.0.11",
@@ -211,7 +211,7 @@
     "run-script-os": "1.1.6",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.96",
+    "thenativeweb-ux": "5.9.10",
     "wait-for-signals": "1.2.3",
     "ws": "7.4.6"
   },
