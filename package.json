@@ -173,7 +173,7 @@
     "mongodb": "3.6.9",
     "mssql": "7.1.0",
     "mysql": "2.18.1",
-    "nocache": "3.0.0",
+    "nocache": "3.0.1",
     "p-forever": "2.1.0",
     "p-queue": "6.6.2",
     "partof": "3.0.3",
@@ -189,7 +189,7 @@
     "swagger-ui-express": "4.1.6",
     "untildify": "4.0.0",
     "uuid": "8.3.2",
-    "validate-value": "9.0.9"
+    "validate-value": "9.0.12"
   },
   "devDependencies": {
     "@types/react": "17.0.11",
