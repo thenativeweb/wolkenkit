@@ -125,7 +125,7 @@
     "node": ">=14.16.0"
   },
   "dependencies": {
-    "@types/async-retry": "1.4.2",
+    "@types/async-retry": "1.4.3",
     "@types/body-parser": "1.19.0",
     "@types/common-tags": "1.8.0",
     "@types/compression": "1.7.0",
