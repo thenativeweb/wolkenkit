@@ -7,7 +7,7 @@
     "processenv": "3.0.8"
   },
   "devDependencies": {
-    "assertthat": "6.3.6",
+    "assertthat": "6.3.7",
     "mocha": "9.0.2",
     "run-script-os": "1.1.6",
     "uuid": "8.3.2"
