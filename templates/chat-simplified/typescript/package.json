@@ -4,7 +4,7 @@
   "description": "",
   "dependencies": {
     "@types/mongodb": "3.6.19",
-    "mongodb": "3.6.9",
+    "mongodb": "4.0.0",
     "processenv": "3.0.8"
   },
   "devDependencies": {
