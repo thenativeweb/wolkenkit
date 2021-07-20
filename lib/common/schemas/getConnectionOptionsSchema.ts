@@ -11,6 +11,7 @@ const getConnectionOptionsSchema = function (): Schema {
           key: { type: 'string' },
           cert: { type: 'string' }
         },
+        required: [],
         additionalProperties: false
       },
       { type: 'boolean' }
