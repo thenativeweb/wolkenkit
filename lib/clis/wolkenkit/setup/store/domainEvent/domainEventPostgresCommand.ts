@@ -1,11 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { ConnectionOptions } from 'tls';
 import { createDomainEventStore } from '../../../../../stores/domainEventStore/createDomainEventStore';
 import { DomainEventPostgresOptions } from './DomainEventPostgresOptions';
 import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/DomainEventStoreOptions';
-import { getConnectionOptionsSchema } from '../../../../../common/schemas/getConnectionOptionsSchema';
+import { getPostgresConnectionOptionsSchema } from '../../../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { parse } from 'validate-value';
+import { PostgresConnectionOptions } from '../../../../../stores/utils/postgres/PostgresConnectionOptions';
 
 const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptions> {
   return {
@@ -71,12 +71,12 @@ const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptio
       );
       const stopWaiting = buntstift.wait();
 
-      let encryptConnection: ConnectionOptions | undefined;
+      let encryptConnection: PostgresConnectionOptions | undefined;
 
       if (rawEncryptConnection) {
-        encryptConnection = parse<ConnectionOptions>(
+        encryptConnection = parse<PostgresConnectionOptions>(
           JSON.parse(rawEncryptConnection),
-          getConnectionOptionsSchema(),
+          getPostgresConnectionOptionsSchema(),
           { valueName: 'encryptConnection' }
         ).unwrapOrThrow();
       }

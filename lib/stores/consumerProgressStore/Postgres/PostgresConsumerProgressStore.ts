@@ -1,5 +1,6 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
+import { convertEncryptConnectionToConnectionOptions } from '../../utils/postgres/convertEncryptConnectionToConnectionOptions';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
 import { PostgresConsumerProgressStoreOptions } from './PostgresConsumerProgressStoreOptions';
@@ -49,13 +50,17 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     encryptConnection,
     tableNames
   }: PostgresConsumerProgressStoreOptions): Promise<PostgresConsumerProgressStore> {
+    const connectionOptions = convertEncryptConnectionToConnectionOptions({
+      encryptConnection
+    });
+
     const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     pool.on('error', (err: Error): never => {
@@ -68,7 +73,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     disconnectWatcher.on('end', PostgresConsumerProgressStore.onUnexpectedClose);

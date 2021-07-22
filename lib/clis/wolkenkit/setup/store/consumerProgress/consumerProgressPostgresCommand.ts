@@ -1,11 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { ConnectionOptions } from 'tls';
 import { ConsumerProgressPostgresOptions } from './ConsumerProgressPostgresOptions';
 import { ConsumerProgressStoreOptions } from '../../../../../stores/consumerProgressStore/ConsumerProgressStoreOptions';
 import { createConsumerProgressStore } from '../../../../../stores/consumerProgressStore/createConsumerProgressStore';
-import { getConnectionOptionsSchema } from '../../../../../common/schemas/getConnectionOptionsSchema';
+import { getPostgresConnectionOptionsSchema } from '../../../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { parse } from 'validate-value';
+import { PostgresConnectionOptions } from '../../../../../stores/utils/postgres/PostgresConnectionOptions';
 
 const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPostgresOptions> {
   return {
@@ -65,12 +65,12 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       );
       const stopWaiting = buntstift.wait();
 
-      let encryptConnection: ConnectionOptions | undefined;
+      let encryptConnection: PostgresConnectionOptions | undefined;
 
       if (rawEncryptConnection) {
-        encryptConnection = parse<ConnectionOptions>(
+        encryptConnection = parse<PostgresConnectionOptions>(
           JSON.parse(rawEncryptConnection),
-          getConnectionOptionsSchema(),
+          getPostgresConnectionOptionsSchema(),
           { valueName: 'encryptConnection' }
         ).unwrapOrThrow();
       }

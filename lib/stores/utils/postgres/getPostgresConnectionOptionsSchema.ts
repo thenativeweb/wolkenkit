@@ -1,6 +1,6 @@
-import { Schema } from '../elements/Schema';
+import { Schema } from '../../../common/elements/Schema';
 
-const getConnectionOptionsSchema = function (): Schema {
+const getPostgresConnectionOptionsSchema = function (): Schema {
   return {
     oneOf: [
       {
@@ -8,8 +8,8 @@ const getConnectionOptionsSchema = function (): Schema {
         properties: {
           rejectUnauthorized: { type: 'boolean' },
           ca: { type: 'string' },
-          key: { type: 'string' },
-          cert: { type: 'string' }
+          privateKey: { type: 'string' },
+          certificate: { type: 'string' }
         },
         required: [],
         additionalProperties: false
@@ -20,5 +20,5 @@ const getConnectionOptionsSchema = function (): Schema {
 };
 
 export {
-  getConnectionOptionsSchema
+  getPostgresConnectionOptionsSchema
 };

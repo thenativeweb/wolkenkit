@@ -1,9 +1,9 @@
-import { getConnectionOptionsSchema } from '../../../common/schemas/getConnectionOptionsSchema';
 import { getPortSchema } from './getPortSchema';
+import { getPostgresConnectionOptionsSchema } from '../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { Schema } from '../../../common/elements/Schema';
 
 const portSchema = getPortSchema();
-const connectionOptionsSchema = getConnectionOptionsSchema();
+const connectionOptionsSchema = getPostgresConnectionOptionsSchema();
 
 const getLockStoreOptionsSchema = function (): Schema {
   return {

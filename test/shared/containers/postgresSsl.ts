@@ -1,5 +1,6 @@
 import { buntstift } from 'buntstift';
 import { connectionOptions } from './connectionOptions';
+import { convertEncryptConnectionToConnectionOptions } from '../../../lib/stores/utils/postgres/convertEncryptConnectionToConnectionOptions';
 import { oneLine } from 'common-tags';
 import { Pool } from 'pg';
 import { retry } from 'retry-ignore-abort';
@@ -31,13 +32,17 @@ const postgresSsl = {
         -c ssl_key_file=/app/server.key
     `);
 
+    const postgresConnectionOptions = convertEncryptConnectionToConnectionOptions({
+      encryptConnection
+    });
+
     const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: postgresConnectionOptions
     });
 
     try {

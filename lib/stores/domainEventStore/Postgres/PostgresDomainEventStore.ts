@@ -1,4 +1,5 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
+import { convertEncryptConnectionToConnectionOptions } from '../../utils/postgres/convertEncryptConnectionToConnectionOptions';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
@@ -53,13 +54,17 @@ class PostgresDomainEventStore implements DomainEventStore {
     encryptConnection,
     tableNames
   }: PostgresDomainEventStoreOptions): Promise<PostgresDomainEventStore> {
+    const connectionOptions = convertEncryptConnectionToConnectionOptions({
+      encryptConnection
+    });
+
     const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     pool.on('error', (err): never => {
@@ -72,7 +77,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     disconnectWatcher.on('end', PostgresDomainEventStore.onUnexpectedClose);

@@ -1,9 +1,9 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { ConnectionOptions } from 'tls';
 import { createPriorityQueueStore } from '../../../../../stores/priorityQueueStore/createPriorityQueueStore';
-import { getConnectionOptionsSchema } from '../../../../../common/schemas/getConnectionOptionsSchema';
+import { getPostgresConnectionOptionsSchema } from '../../../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { parse } from 'validate-value';
+import { PostgresConnectionOptions } from '../../../../../stores/utils/postgres/PostgresConnectionOptions';
 import { PriorityQueuePostgresOptions } from './PriorityQueuePostgresOptions';
 import { PriorityQueueStoreOptions } from '../../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
 
@@ -71,12 +71,12 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
       );
       const stopWaiting = buntstift.wait();
 
-      let encryptConnection: ConnectionOptions | undefined;
+      let encryptConnection: PostgresConnectionOptions | undefined;
 
       if (rawEncryptConnection) {
-        encryptConnection = parse<ConnectionOptions>(
+        encryptConnection = parse<PostgresConnectionOptions>(
           JSON.parse(rawEncryptConnection),
-          getConnectionOptionsSchema(),
+          getPostgresConnectionOptionsSchema(),
           { valueName: 'encryptConnection' }
         ).unwrapOrThrow();
       }
