@@ -8,3 +8,4 @@
 # Next.js build output
 /websites/**/.next
 /websites/**/out
+/websites/**/next-env.d.ts

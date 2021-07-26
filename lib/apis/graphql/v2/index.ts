@@ -1,24 +1,27 @@
 import { ApolloServer } from 'apollo-server-express';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { Application } from '../../../common/application/Application';
 import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
+import { getHandleSubscriptionAuthorization } from './getHandleSubscriptionAuthorization';
 import { getSchema } from './getSchema';
-import { getSubscriptionOptions } from './observeDomainEvents/getSubscriptionOptions';
+import http from 'http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../InitializeGraphQlOnServer';
+import { makeServer } from 'graphql-ws';
 import { Notification } from '../../../common/elements/Notification';
 import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
 import { ResolverContext } from './ResolverContext';
-import { Server } from 'http';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
 import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
+import ws from 'ws';
 import { flaschenpost, getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import * as errors from '../../../common/errors';
 
@@ -99,32 +102,21 @@ const getV2 = async function ({
 
   const graphqlServer = new ApolloServer({
     schema,
-    context ({
-      req,
-      connection
-    }): ResolverContext {
-      if (observeDomainEvents !== false && connection) {
-        // If observeDomainEvents is true, the value returned here will be added
-        // to the connection context when a WebSocket connection is initialized.
-        // This way the clientMetadata is available in the subscription
-        // resolvers.
-        return connection.context;
-      }
-
+    context ({ req }): ResolverContext {
       return { clientMetadata: new ClientMetadata({ req }) };
     },
-    subscriptions: webSocketEndpoint ?
-      getSubscriptionOptions({
-        identityProviders,
-        webSocketEndpoint,
-        issuerForAnonymousTokens: 'https://token.invalid'
-      }) :
-      undefined,
     introspection: true,
-    playground: enableIntegratedClient ?
-      { subscriptionEndpoint: webSocketEndpoint } :
-      false
+    plugins: enableIntegratedClient ?
+      [
+        // eslint-disable-next-line new-cap
+        ApolloServerPluginLandingPageGraphQLPlayground({
+          endpoint: webSocketEndpoint
+        })
+      ] :
+      []
   });
+
+  await graphqlServer.start();
 
   graphqlServer.applyMiddleware({
     app: api,
@@ -133,9 +125,78 @@ const getV2 = async function ({
   });
 
   const initializeGraphQlOnServer = async ({ server }: {
-    server: Server;
+    server: http.Server;
   }): Promise<void> => {
-    graphqlServer.installSubscriptionHandlers(server);
+    if (!observeDomainEvents && !observeNotifications) {
+      return;
+    }
+
+    const handleSubscriptionAuthorization = getHandleSubscriptionAuthorization({
+      identityProviders,
+      issuerForAnonymousTokens: 'https://token.invalid'
+    });
+    const graphqlSubscriptionServer = makeServer<{
+      readonly request: http.IncomingMessage;
+    }>({
+      schema,
+      async context (ctx): Promise<{ clientMetadata: ClientMetadata }> {
+        return await handleSubscriptionAuthorization(ctx);
+      }
+    });
+
+    const wsServer = new ws.Server({
+      server,
+      path: webSocketEndpoint
+    });
+
+    // The following snippet is more or less directly taken from the examples
+    // of [graphql-ws](https://github.com/enisdenjo/graphql-ws).
+    wsServer.on('connection', (socket, request): void => {
+      const closed = graphqlSubscriptionServer.opened(
+        {
+          protocol: socket.protocol,
+          async send (data): Promise<void> {
+            await new Promise<void>((resolve, reject): void => {
+              socket.send(
+                data,
+                (err): void => {
+                  if (err) {
+                    reject(err);
+
+                    return;
+                  }
+                  resolve();
+                }
+              );
+            });
+          },
+          close (code, reason): void {
+            socket.close(code, reason);
+          },
+          onMessage (cb): void {
+            socket.on(
+              'message',
+              async (event): Promise<void> => {
+                try {
+                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  await cb(event.toString());
+                } catch (ex: unknown) {
+                  socket.close(1_011, (ex as Error).message);
+                }
+              }
+            );
+          }
+        },
+        { request }
+      );
+
+      socket.once(
+        'close',
+        async (code, reason): Promise<void> => {
+          await closed(code, reason);
+        }
+      );
+    });
   };
 
   return { api, publishDomainEvent, initializeGraphQlOnServer };

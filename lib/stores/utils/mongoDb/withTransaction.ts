@@ -1,4 +1,4 @@
-import { ClientSession, MongoClient } from 'mongodb';
+import { ClientSession, MongoClient, ReadConcern, ReadPreference } from 'mongodb';
 
 const withTransaction = async function<TResult = void> ({ client, fn }: {
   client: MongoClient;
@@ -8,8 +8,8 @@ const withTransaction = async function<TResult = void> ({ client, fn }: {
 
   await client.withSession({
     defaultTransactionOptions: {
-      readPreference: 'primary',
-      readConcern: { level: 'local' },
+      readPreference: new ReadPreference('primary'),
+      readConcern: ReadConcern.fromOptions({ level: 'local' }),
       // eslint-disable-next-line id-length
       writeConcern: { w: 'majority' }
     }
