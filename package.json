@@ -140,7 +140,7 @@
     "@types/mongodb": "3.6.19",
     "@types/mssql": "6.0.8",
     "@types/mysql": "2.15.18",
-    "@types/node": "15.6.1",
+    "@types/node": "16.4.10",
     "@types/pg": "8.6.0",
     "@types/pg-query-stream": "3.4.0",
     "@types/shelljs": "0.8.8",
