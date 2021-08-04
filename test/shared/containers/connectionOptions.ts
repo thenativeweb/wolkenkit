@@ -41,8 +41,8 @@ const connectionOptions = {
     database: 'wolkenkit',
     encryptConnection: {
       /* eslint-disable no-sync */
-      privateKey: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'server.key'), 'utf-8'),
-      certificate: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'server.crt'), 'utf-8'),
+      privateKey: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'privateKey.pem'), 'utf-8'),
+      certificate: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'certificate.pem'), 'utf-8'),
       /* eslint-enable no-sync */
       rejectUnauthorized: false
     }
