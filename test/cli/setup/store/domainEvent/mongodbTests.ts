@@ -29,7 +29,7 @@ suite('setup store domain-event mongodb', function (): void {
     const client = await retry(async (): Promise<MongoClient> => await MongoClient.connect(
       connectionString,
       // eslint-disable-next-line id-length
-      { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
+      { w: 1 }
     ));
 
     const { pathname } = new URL(connectionString);

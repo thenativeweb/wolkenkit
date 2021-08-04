@@ -46,7 +46,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
       const connection = await MongoClient.connect(
         connectionString,
         // eslint-disable-next-line id-length
-        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
+        { w: 1 }
       );
 
       return connection;
@@ -57,7 +57,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbConsumerProgressStore.onUnexpectedClose);
+    client.on('close', MongoDbConsumerProgressStore.onUnexpectedClose);
 
     const collections = {
       progress: db.collection(collectionNames.progress)
@@ -99,7 +99,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     await withTransaction({
       client: this.client,
       fn: async ({ session }): Promise<void> => {
-        const { matchedCount } = await this.collections.progress.updateOne(
+        const result = await this.collections.progress.updateOne(
           {
             consumerId,
             aggregateId: aggregateIdentifier.aggregate.id,
@@ -109,7 +109,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
           { session }
         );
 
-        if (matchedCount === 1) {
+        if (result.modifiedCount === 1) {
           return;
         }
 
@@ -205,7 +205,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
           { session }
         );
 
-        const { matchedCount } = await this.collections.progress.updateOne(
+        const { modifiedCount } = await this.collections.progress.updateOne(
           {
             consumerId,
             aggregateId: aggregateIdentifier.aggregate.id
@@ -214,7 +214,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
           { session }
         );
 
-        if (matchedCount === 1) {
+        if (modifiedCount === 1) {
           return;
         }
 
@@ -227,15 +227,17 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
   }
 
   public async setup (): Promise<void> {
-    await this.collections.progress.createIndexes([{
-      key: { consumerId: 1, aggregateId: 1 },
-      name: `${this.collectionNames.progress}_consumerId_aggregateId`,
-      unique: true
-    }]);
+    await this.collections.progress.createIndex(
+      { consumerId: 1, aggregateId: 1 },
+      {
+        name: `${this.collectionNames.progress}_consumerId_aggregateId`,
+        unique: true
+      }
+    );
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbConsumerProgressStore.onUnexpectedClose);
+    this.client.removeListener('close', MongoDbConsumerProgressStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }

@@ -76,7 +76,7 @@ class MongoDbPriorityQueueStore<TItem extends object, TItemIdentifier> implement
       const connection = await MongoClient.connect(
         connectionString,
         // eslint-disable-next-line id-length
-        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
+        { w: 1 }
       );
 
       return connection;
@@ -87,7 +87,7 @@ class MongoDbPriorityQueueStore<TItem extends object, TItemIdentifier> implement
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbPriorityQueueStore.onUnexpectedClose);
+    client.on('close', MongoDbPriorityQueueStore.onUnexpectedClose);
 
     const collections = {
       queues: db.collection(collectionNames.queues)
@@ -578,22 +578,24 @@ class MongoDbPriorityQueueStore<TItem extends object, TItemIdentifier> implement
   }
 
   public async setup (): Promise<void> {
-    await this.collections.queues.createIndexes([
+    await this.collections.queues.createIndex(
+      { discriminator: 1 },
       {
-        key: { discriminator: 1 },
         name: `${this.collectionNames.queues}_discriminator`,
         unique: true
-      },
+      }
+    );
+    await this.collections.queues.createIndex(
+      { indexInPriorityQueue: 1 },
       {
-        key: { indexInPriorityQueue: 1 },
         name: `${this.collectionNames.queues}_indexInPriorityQueue`,
         unique: true
       }
-    ]);
+    );
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbPriorityQueueStore.onUnexpectedClose);
+    this.client.removeListener('close', MongoDbPriorityQueueStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }
