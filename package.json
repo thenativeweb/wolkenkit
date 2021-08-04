@@ -162,7 +162,7 @@
     "eventemitter2": "6.4.4",
     "express": "4.17.1",
     "flaschenpost": "5.0.41",
-    "get-cors-origin": "4.0.22",
+    "get-cors-origin": "4.0.23",
     "get-graphql-from-jsonschema": "8.0.12",
     "graphql": "15.5.1",
     "graphql-ws": "5.3.0",
