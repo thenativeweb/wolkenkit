@@ -17,7 +17,7 @@ const compileWithTypeScript = async function ({
   const shellQuote = process.platform === 'win32' ? `"` : `'`;
 
   const { code, stdout, stderr } = exec(oneLine`
-    npx tsc
+    npx --package=typescript tsc
       --module CommonJS
       --noEmitOnError
       --outDir ${shellQuote}${targetDirectory}${shellQuote}

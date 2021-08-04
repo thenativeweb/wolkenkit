@@ -1,4 +1,3 @@
-import { ApolloClient } from 'apollo-client';
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import axios from 'axios';
@@ -19,7 +18,6 @@ import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotSt
 import { getSocketPaths } from '../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
-import { HttpLink } from 'apollo-link-http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/InitializeGraphQlOnServer';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
@@ -31,13 +29,11 @@ import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
-import { WebSocketLink } from 'apollo-link-ws';
-import ws from 'ws';
+import { WebSocketLink } from '../../../shared/WebSocketLink';
+import { ApolloClient, HttpLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client';
 import http, { Agent } from 'http';
-import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 import * as errors from '../../../../lib/common/errors';
 
 suite('graphql', function (): void {
@@ -399,12 +395,9 @@ suite('graphql', function (): void {
     let client: ApolloClient<NormalizedCacheObject>;
 
     setup(async (): Promise<void> => {
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/v2/`,
-        {},
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/v2/`
+      });
       const cache = new InMemoryCache();
 
       client = new ApolloClient<NormalizedCacheObject>({
@@ -619,16 +612,12 @@ suite('graphql', function (): void {
         payload: {}
       });
 
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/v2/`,
-        {
-          connectionParams: {
-            token
-          }
-        },
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/v2/`,
+        connectionParams: {
+          token
+        }
+      });
       const cache = new InMemoryCache();
 
       client = new ApolloClient<NormalizedCacheObject>({
@@ -755,16 +744,12 @@ suite('graphql', function (): void {
         }
       `;
 
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/v2/`,
-        {
-          connectionParams: {
-            'x-anonymous-id': 'jane.doe'
-          }
-        },
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/v2/`,
+        connectionParams: {
+          'x-anonymous-id': 'jane.doe'
+        }
+      });
       const cache = new InMemoryCache();
 
       client = new ApolloClient<NormalizedCacheObject>({
@@ -863,16 +848,12 @@ suite('graphql', function (): void {
         }
       `;
 
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/v2/`,
-        {
-          connectionParams: {
-            'x-anonymous-id': 'john.doe'
-          }
-        },
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/v2/`,
+        connectionParams: {
+          'x-anonymous-id': 'john.doe'
+        }
+      });
       const cache = new InMemoryCache();
 
       client = new ApolloClient<NormalizedCacheObject>({
@@ -916,12 +897,9 @@ suite('graphql', function (): void {
     let client: ApolloClient<NormalizedCacheObject>;
 
     setup(async (): Promise<void> => {
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/v2/`,
-        {},
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/v2/`
+      });
       const cache = new InMemoryCache();
 
       client = new ApolloClient<NormalizedCacheObject>({
