@@ -258,7 +258,7 @@ suite('graphql process', function (): void {
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const link = new WebSocketLink({
-        url: `ws+unix://${socket}:/v2/`
+        url: `ws+unix://${socket}:/graphql/v2/`
       });
       const cache = new InMemoryCache();
 
@@ -322,7 +322,7 @@ suite('graphql process', function (): void {
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
       const link = new WebSocketLink({
-        url: `ws+unix://${socket}:/v2/`
+        url: `ws+unix://${socket}:/graphql/v2/`
       });
       const cache = new InMemoryCache();
 
