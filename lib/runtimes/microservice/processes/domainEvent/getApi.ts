@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { flaschenpost } from 'flaschenpost';
 import { getCorsOrigin } from 'get-cors-origin';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
@@ -25,6 +26,7 @@ const getApi = async function ({
 }): Promise<{ api: ExpressApplication; publishDomainEvent: PublishDomainEvent }> {
   const corsOrigin = getCorsOrigin(configuration.domainEventCorsOrigin);
 
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: observeDomainEventsApi, publishDomainEvent, getApiDefinitions: getObserveDomainApiDefinitions } =
       await getObserveDomainEventsApi({
         corsOrigin,
@@ -36,6 +38,7 @@ const getApi = async function ({
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/domain-events', observeDomainEventsApi);
 
   if (configuration.enableOpenApiDocumentation) {

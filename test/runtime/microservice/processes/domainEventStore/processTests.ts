@@ -1,6 +1,7 @@
 import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
@@ -64,6 +65,18 @@ suite('domain event store process', function (): void {
     }
 
     stopProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

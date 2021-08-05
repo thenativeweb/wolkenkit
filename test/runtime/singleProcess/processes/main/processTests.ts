@@ -2,6 +2,7 @@ import { Agent } from 'http';
 import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand';
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
@@ -115,6 +116,18 @@ suite('main process', function (): void {
     }
 
     stopProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

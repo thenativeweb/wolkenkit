@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
+import axios from 'axios';
 import { Command } from '../../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
 import { Configuration as CommandDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
@@ -107,6 +108,18 @@ suite('command process', (): void => {
 
       stopProcess = undefined;
       stopCommandDispatcherProcess = undefined;
+    });
+
+    suite('landing page', (): void => {
+      test('serves the landing page.', async (): Promise<void> => {
+        const { data } = await axios({
+          method: 'GET',
+          url: 'http://localhost/',
+          socketPath: socket
+        });
+
+        assert.that(data as string).is.containing('wolkenkit');
+      });
     });
 
     suite('getHealth', (): void => {

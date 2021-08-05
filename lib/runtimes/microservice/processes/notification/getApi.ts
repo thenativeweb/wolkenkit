@@ -1,6 +1,7 @@
 import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getSubscribeNotificationsApi } from '../../../../apis/subscribeNotifications/http';
 import { IdentityProvider } from 'limes';
 import { Notification } from '../../../../common/elements/Notification';
@@ -22,8 +23,7 @@ const getApi = async function ({
 }): Promise<{ api: ExpressApplication }> {
   const corsOrigin = getCorsOrigin(configuration.notificationCorsOrigin);
 
-  const api = express();
-
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: subscribeNotificationsApi } = await getSubscribeNotificationsApi({
     application,
     identityProviders,
@@ -33,6 +33,9 @@ const getApi = async function ({
     heartbeatInterval: configuration.heartbeatInterval
   });
 
+  const api = express();
+
+  api.use(landingPageApi);
   api.use('/notifications', subscribeNotificationsApi);
 
   return { api };

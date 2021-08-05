@@ -1,4 +1,5 @@
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
@@ -146,6 +147,18 @@ suite('replay process', function (): void {
     stopDomainEventDispatcherProcess = undefined;
     stopDomainEventStoreProcess = undefined;
     stopReplayProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: replaySocket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

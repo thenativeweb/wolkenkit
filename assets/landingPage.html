@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Wolkenkit</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Wolkenkit" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="<wolkenkitFaviconPngSrc>" />
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+
+            background-color: #212121;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes grow-logo {
+            from {
+                transform: scale(0.9, 0.9);
+                opacity: 0.7;
+            }
+
+            to {
+                transform: scale(1, 1);
+                opacity: 1;
+            }
+        }
+
+        img {
+            width: 10vw;
+            height: 10vw;
+
+            animation-name: grow-logo;
+            animation-duration: 2s;
+            animation-timing-function: ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <img src="<wolkenkitLogoSvgSrc>"  alt="wolkenkit logo" />
+</body>
+</html>

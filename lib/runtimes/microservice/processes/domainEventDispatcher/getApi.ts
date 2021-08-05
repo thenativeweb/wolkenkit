@@ -6,6 +6,7 @@ import { getApi as getAwaitDomainEventApi } from '../../../../apis/awaitItem/htt
 import { getCorsOrigin } from 'get-cors-origin';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getApi as getHandleDomainEventApi } from '../../../../apis/handleDomainEvent/http';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnReceiveDomainEvent';
 import { Parser } from 'validate-value';
@@ -29,14 +30,14 @@ const getApi = async function ({
   newDomainEventPubSubChannel: string;
   onReceiveDomainEvent: OnReceiveDomainEvent;
 }): Promise<{ api: ExpressApplication }> {
+  const domainEventParser = new Parser(getDomainEventSchema());
+
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: handleDomainEventApi } = await getHandleDomainEventApi({
     corsOrigin: getCorsOrigin(configuration.handleDomainEventCorsOrigin),
     application,
     onReceiveDomainEvent
   });
-
-  const domainEventParser = new Parser(getDomainEventSchema());
-
   const { api: awaitDomainEventApi } = await getAwaitDomainEventApi<DomainEvent<DomainEventData>>({
     corsOrigin: getCorsOrigin(configuration.awaitDomainEventCorsOrigin),
     priorityQueueStore,
@@ -55,6 +56,7 @@ const getApi = async function ({
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/handle-domain-event', handleDomainEventApi);
   api.use('/await-domain-event', awaitDomainEventApi);
 

@@ -1,5 +1,6 @@
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getPublishMessageApi } from '../../../../apis/publishMessage/http';
 import { getApi as getSubscribeMessagesApi } from '../../../../apis/subscribeMessages/http';
 import { OnReceiveMessage } from '../../../../apis/publishMessage/OnReceiveMessage';
@@ -10,17 +11,18 @@ const getApi = async function ({ configuration, onReceiveMessage }: {
   configuration: Configuration;
   onReceiveMessage: OnReceiveMessage;
 }): Promise<{ api: Application; publishMessage: PublishMessage }> {
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: publishMessageApi } = await getPublishMessageApi({
     corsOrigin: getCorsOrigin(configuration.publishCorsOrigin),
     onReceiveMessage
   });
-
   const { api: subscribeMessagesApi, publishMessage } = await getSubscribeMessagesApi({
     corsOrigin: getCorsOrigin(configuration.subscribeCorsOrigin)
   });
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/publish', publishMessageApi);
   api.use('/subscribe', subscribeMessagesApi);
 

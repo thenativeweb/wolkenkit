@@ -3,6 +3,7 @@ import { Configuration } from './Configuration';
 import { flaschenpost } from 'flaschenpost';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
@@ -27,6 +28,7 @@ const getApi = async function ({
 }): Promise<{ api: ExpressApplication }> {
   const corsOrigin = getCorsOrigin(configuration.commandCorsOrigin);
 
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: handleCommandApi, getApiDefinitions: getHandleCommandApiDefinitions } = await getHandleCommandApi({
     corsOrigin,
     onReceiveCommand,
@@ -37,6 +39,7 @@ const getApi = async function ({
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/command', handleCommandApi);
 
   if (configuration.enableOpenApiDocumentation) {
