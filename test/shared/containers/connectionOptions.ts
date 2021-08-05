@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 const connectionOptions = {
   mariaDb: {
     hostName: 'localhost',
@@ -29,6 +32,20 @@ const connectionOptions = {
     userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
+  },
+  postgresSsl: {
+    hostName: 'localhost',
+    port: 5_433,
+    userName: 'wolkenkit',
+    password: 'wolkenkit',
+    database: 'wolkenkit',
+    encryptConnection: {
+      /* eslint-disable no-sync */
+      privateKey: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'privateKey.pem'), 'utf-8'),
+      certificate: fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docker', 'wolkenkit-postgres-ssl', 'certificate.pem'), 'utf-8'),
+      /* eslint-enable no-sync */
+      rejectUnauthorized: false
+    }
   },
   redis: {
     hostName: 'localhost',

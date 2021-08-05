@@ -1,3 +1,4 @@
+import { convertEncryptConnectionToConnectionOptions } from '../../utils/postgres/convertEncryptConnectionToConnectionOptions';
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -77,13 +78,17 @@ class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       tableNames
     }: PostgresPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
   ): Promise<PostgresPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
+    const connectionOptions = convertEncryptConnectionToConnectionOptions({
+      encryptConnection
+    });
+
     const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     pool.on('error', (err: Error): never => {
@@ -96,7 +101,7 @@ class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     disconnectWatcher.on('end', PostgresPriorityQueueStore.onUnexpectedClose);

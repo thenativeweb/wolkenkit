@@ -224,6 +224,21 @@ updates:
     prefix: fix
 
 - package-ecosystem: docker
+  directory: "/docker/wolkenkit-postgres-ssl"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  assignees:
+    - dotKuro
+    - goloroden
+    - strangedev
+    - yeldiRium
+  labels:
+    - Dependencies
+  commit-message:
+    prefix: fix
+
+- package-ecosystem: docker
   directory: "/docker/wolkenkit-redis"
   schedule:
     interval: weekly

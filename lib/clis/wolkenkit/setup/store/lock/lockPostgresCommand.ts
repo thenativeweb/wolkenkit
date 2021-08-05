@@ -1,8 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { createLockStore } from '../../../../../stores/lockStore/createLockStore';
+import { getPostgresConnectionOptionsSchema } from '../../../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { LockPostgresOptions } from './LockPostgresOptions';
 import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptions';
+import { parse } from 'validate-value';
+import { PostgresConnectionOptions } from '../../../../../stores/utils/postgres/PostgresConnectionOptions';
 
 const lockPostgresCommand = function (): Command<LockPostgresOptions> {
   return {
@@ -37,7 +40,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       },
       {
         name: 'encrypt-connection',
-        type: 'boolean'
+        type: 'string'
       },
       {
         name: 'table-name-locks',
@@ -52,7 +55,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       'user-name': userName,
       password,
       database,
-      'encrypt-connection': encryptConnection,
+      'encrypt-connection': rawEncryptConnection,
       'table-name-locks': tableNameLocks,
       verbose
     }}): Promise<void> {
@@ -61,6 +64,16 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
           withVerboseMode(verbose)
       );
       const stopWaiting = buntstift.wait();
+
+      let encryptConnection: PostgresConnectionOptions | undefined;
+
+      if (rawEncryptConnection) {
+        encryptConnection = parse<PostgresConnectionOptions>(
+          JSON.parse(rawEncryptConnection),
+          getPostgresConnectionOptionsSchema(),
+          { valueName: 'encryptConnection' }
+        ).unwrapOrThrow();
+      }
 
       const storeOptions: LockStoreOptions = {
         type: 'Postgres',
