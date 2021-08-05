@@ -1,3 +1,4 @@
+import { PostgresConnectionOptions } from '../../utils/postgres/PostgresConnectionOptions';
 import { TableNames } from './TableNames';
 
 export interface PostgresDomainEventStoreOptions {
@@ -7,6 +8,6 @@ export interface PostgresDomainEventStoreOptions {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: boolean;
+  encryptConnection?: boolean | PostgresConnectionOptions;
   tableNames: TableNames;
 }

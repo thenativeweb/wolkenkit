@@ -4,7 +4,7 @@ import { buildImages } from '../../docker/buildImages';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
-import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
+import { mariaDb, minio, mongoDb, mySql, postgres, postgresSsl, redis, sqlServer } from '../shared/containers';
 import * as errors from '../../lib/common/errors';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -31,6 +31,7 @@ import * as errors from '../../lib/common/errors';
       mongoDb.start(),
       mySql.start(),
       postgres.start(),
+      postgresSsl.start(),
       redis.start(),
       sqlServer.start()
     ]);

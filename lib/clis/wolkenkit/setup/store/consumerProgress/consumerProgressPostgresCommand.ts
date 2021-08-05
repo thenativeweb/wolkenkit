@@ -3,6 +3,9 @@ import { Command } from 'command-line-interface';
 import { ConsumerProgressPostgresOptions } from './ConsumerProgressPostgresOptions';
 import { ConsumerProgressStoreOptions } from '../../../../../stores/consumerProgressStore/ConsumerProgressStoreOptions';
 import { createConsumerProgressStore } from '../../../../../stores/consumerProgressStore/createConsumerProgressStore';
+import { getPostgresConnectionOptionsSchema } from '../../../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
+import { parse } from 'validate-value';
+import { PostgresConnectionOptions } from '../../../../../stores/utils/postgres/PostgresConnectionOptions';
 
 const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPostgresOptions> {
   return {
@@ -37,7 +40,7 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       },
       {
         name: 'encrypt-connection',
-        type: 'boolean'
+        type: 'string'
       },
       {
         name: 'table-name-progress',
@@ -52,7 +55,7 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       'user-name': userName,
       password,
       database,
-      'encrypt-connection': encryptConnection,
+      'encrypt-connection': rawEncryptConnection,
       'table-name-progress': tableNameProgress,
       verbose
     }}): Promise<void> {
@@ -61,6 +64,16 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
           withVerboseMode(verbose)
       );
       const stopWaiting = buntstift.wait();
+
+      let encryptConnection: PostgresConnectionOptions | undefined;
+
+      if (rawEncryptConnection) {
+        encryptConnection = parse<PostgresConnectionOptions>(
+          JSON.parse(rawEncryptConnection),
+          getPostgresConnectionOptionsSchema(),
+          { valueName: 'encryptConnection' }
+        ).unwrapOrThrow();
+      }
 
       const storeOptions: ConsumerProgressStoreOptions = {
         type: 'Postgres',

@@ -44,4 +44,57 @@ suite('setup store consumer-progress postgres', function (): void {
 
     assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
   });
+
+  test(`fails if invalid 'encrypt-connection' options are given.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database
+    } = connectionOptions.postgresSsl;
+
+    const tableNameProgress = v4();
+
+    const setupPostgresConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress} --encrypt-connection '{"not": "even close"}'`;
+    const { stdout } = shell.exec(setupPostgresConsumerProgressStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Unexpected additional property: not (at encryptConnection.not).');
+  });
+
+  test(`sets up a postgres database using ssl.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      encryptConnection
+    } = connectionOptions.postgresSsl;
+
+    const tableNameProgress = v4();
+    const encryptConnectionJson = JSON.stringify(encryptConnection);
+
+    const setupPostgresConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress} --encrypt-connection '${encryptConnectionJson}'`;
+    const { stdout } = shell.exec(setupPostgresConsumerProgressStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL consumer progress store.');
+
+    const pool = new Pool({
+      host: hostName,
+      port,
+      user: userName,
+      password,
+      database,
+      ssl: encryptConnection
+    });
+    const connection = await retry(async (): Promise<PoolClient> => await pool.connect());
+
+    const checkTableResult = await connection.query({
+      name: 'check table',
+      text: `SELECT to_regclass('${tableNameProgress}');`
+    });
+
+    assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+  });
 });

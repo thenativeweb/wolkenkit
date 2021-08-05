@@ -8,5 +8,5 @@ export interface DomainEventPostgresOptions extends RootOptions {
   database: string;
   'table-name-domain-events': string;
   'table-name-snapshots': string;
-  'encrypt-connection'?: boolean;
+  'encrypt-connection'?: string;
 }

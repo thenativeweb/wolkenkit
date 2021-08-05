@@ -1,4 +1,5 @@
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
+import { PostgresConnectionOptions } from '../../utils/postgres/PostgresConnectionOptions';
 import { TableNames } from './TableNames';
 
 export interface PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier> {
@@ -10,6 +11,6 @@ export interface PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier> {
   userName: string;
   password: string;
   database: string;
-  encryptConnection?: boolean;
+  encryptConnection?: boolean | PostgresConnectionOptions;
   tableNames: TableNames;
 }
