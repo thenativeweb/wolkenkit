@@ -1,5 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -61,6 +62,18 @@ suite('publisher process', function (): void {
     }
 
     stopProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

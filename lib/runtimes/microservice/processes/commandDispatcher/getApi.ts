@@ -6,6 +6,7 @@ import { getApi as getAwaitCommandWithMetadataApi } from '../../../../apis/await
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/handleCommandWithMetadata/http';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnCancelCommand } from '../../../../apis/handleCommandWithMetadata/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
@@ -32,15 +33,15 @@ const getApi = async function ({
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
 }): Promise<{ api: ExpressApplication }> {
+  const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
+
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: handleCommandApi } = await getHandleCommandWithMetadataApi({
     corsOrigin: getCorsOrigin(configuration.handleCommandCorsOrigin),
     onReceiveCommand,
     onCancelCommand,
     application
   });
-
-  const commandWithMetadataParser = new Parser(getCommandWithMetadataSchema());
-
   const { api: awaitCommandWithMetadataApi } = await getAwaitCommandWithMetadataApi<CommandWithMetadata<CommandData>>({
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
@@ -57,6 +58,7 @@ const getApi = async function ({
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/handle-command', handleCommandApi);
   api.use('/await-command', awaitCommandWithMetadataApi);
 

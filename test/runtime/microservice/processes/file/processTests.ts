@@ -1,4 +1,5 @@
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/view/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/view/configurationDefinition';
 import { CustomError } from 'defekt';
@@ -59,6 +60,18 @@ suite('file process', function (): void {
     }
 
     stopProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

@@ -1,6 +1,7 @@
 import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { getApi as getQueryViewApi } from '../../../../apis/queryView/http';
 import { IdentityProvider } from 'limes';
@@ -13,6 +14,7 @@ const getApi = async function ({ application, configuration, identityProviders }
 }): Promise<{ api: ExpressApplication }> {
   const corsOrigin = getCorsOrigin(configuration.viewCorsOrigin);
 
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: queryViewsApi, getApiDefinitions } = await getQueryViewApi({
     corsOrigin,
     application,
@@ -21,6 +23,7 @@ const getApi = async function ({ application, configuration, identityProviders }
 
   const api = express();
 
+  api.use(landingPageApi);
   api.use('/views', queryViewsApi);
 
   if (configuration.enableOpenApiDocumentation) {

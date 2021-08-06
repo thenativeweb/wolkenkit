@@ -1,5 +1,6 @@
 import { Agent } from 'http';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
@@ -196,6 +197,18 @@ suite('graphql process', function (): void {
     stopProcessPublisher = undefined;
     stopProcessCommandDispatcher = undefined;
     stopProcessDomainEventStore = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {
