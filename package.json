@@ -196,14 +196,14 @@
     "ws": "8.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "3.4.5",
+    "@apollo/client": "3.4.6",
     "@types/react": "17.0.15",
     "@types/react-dom": "17.0.9",
     "assertthat": "6.3.11",
     "graphql-tag": "2.12.5",
     "next": "11.0.1",
     "node-fetch": "2.6.1",
-    "nodeenv": "3.0.68",
+    "nodeenv": "3.0.69",
     "npm-check": "5.9.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
