@@ -197,7 +197,7 @@
   },
   "devDependencies": {
     "@apollo/client": "3.4.6",
-    "@types/react": "17.0.15",
+    "@types/react": "17.0.16",
     "@types/react-dom": "17.0.9",
     "assertthat": "6.3.11",
     "graphql-tag": "2.12.5",
