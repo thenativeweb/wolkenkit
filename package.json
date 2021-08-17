@@ -192,7 +192,7 @@
     "swagger-ui-express": "4.1.6",
     "untildify": "4.0.0",
     "uuid": "8.3.2",
-    "validate-value": "9.1.4",
+    "validate-value": "9.1.6",
     "ws": "8.0.0"
   },
   "devDependencies": {
