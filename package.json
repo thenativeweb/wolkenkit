@@ -151,7 +151,7 @@
     "apollo-server-express": "3.1.2",
     "axios": "0.21.1",
     "body-parser": "1.19.0",
-    "buntstift": "4.0.34",
+    "buntstift": "5.0.0",
     "command-line-interface": "4.0.21",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
@@ -211,7 +211,7 @@
     "roboter": "11.7.8",
     "run-script-os": "1.1.6",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.9.22",
+    "thenativeweb-ux": "5.9.30",
     "wait-for-signals": "1.2.7"
   },
   "scripts": {
