@@ -151,7 +151,7 @@
     "apollo-server-express": "3.1.2",
     "axios": "0.21.1",
     "body-parser": "1.19.0",
-    "buntstift": "4.0.34",
+    "buntstift": "5.0.0",
     "command-line-interface": "4.0.21",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
@@ -168,7 +168,7 @@
     "graphql-ws": "5.3.0",
     "helmet": "4.6.0",
     "ioredis": "4.27.7",
-    "is-typescript": "4.0.5",
+    "is-typescript": "4.0.6",
     "isolated": "3.0.23",
     "limes": "6.1.8",
     "lodash": "4.17.21",
@@ -193,7 +193,7 @@
     "untildify": "4.0.0",
     "uuid": "8.3.2",
     "validate-value": "9.1.6",
-    "ws": "8.0.0"
+    "ws": "8.2.0"
   },
   "devDependencies": {
     "@apollo/client": "3.4.8",
@@ -201,9 +201,9 @@
     "@types/react-dom": "17.0.9",
     "assertthat": "6.3.13",
     "graphql-tag": "2.12.5",
-    "next": "11.0.1",
+    "next": "11.1.0",
     "node-fetch": "2.6.1",
-    "nodeenv": "3.0.69",
+    "nodeenv": "3.0.71",
     "npm-check": "5.9.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -211,7 +211,7 @@
     "roboter": "11.7.8",
     "run-script-os": "1.1.6",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.9.22",
+    "thenativeweb-ux": "5.9.30",
     "wait-for-signals": "1.2.7"
   },
   "scripts": {
