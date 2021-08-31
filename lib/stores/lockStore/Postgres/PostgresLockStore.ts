@@ -1,3 +1,4 @@
+import { convertEncryptConnectionToConnectionOptions } from '../../utils/postgres/convertEncryptConnectionToConnectionOptions';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { PostgresLockStoreOptions } from './PostgresLockStoreOptions';
@@ -46,13 +47,17 @@ class PostgresLockStore implements LockStore {
     encryptConnection,
     tableNames
   }: PostgresLockStoreOptions): Promise<PostgresLockStore> {
+    const connectionOptions = convertEncryptConnectionToConnectionOptions({
+      encryptConnection
+    });
+
     const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     pool.on('error', (err: Error): never => {
@@ -65,7 +70,7 @@ class PostgresLockStore implements LockStore {
       user: userName,
       password,
       database,
-      ssl: encryptConnection
+      ssl: connectionOptions
     });
 
     disconnectWatcher.on('end', PostgresLockStore.onUnexpectedClose);

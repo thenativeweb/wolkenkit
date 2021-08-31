@@ -4,6 +4,7 @@ import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { getApi as getManageFileApi } from '../../../../apis/manageFile/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
@@ -48,12 +49,17 @@ const getApi = async function ({
     publishDomainEvent: PublishDomainEvent;
     initializeGraphQlOnServer: InitializeGraphQlOnServer | undefined;
   }> {
-  const api = express();
   const corsOrigin = getCorsOrigin(configuration.corsOrigin);
 
   let initializeGraphQlOnServer: undefined | InitializeGraphQlOnServer,
       publishDomainEventToGraphqlApi: undefined | PublishDomainEvent,
       publishDomainEventToRestApi: undefined | PublishDomainEvent;
+
+  const api = express();
+
+  const { api: landingPageApi } = await getLandingPageApi();
+
+  api.use(landingPageApi);
 
   if (configuration.httpApi) {
     const { api: observeDomainEventsApi, publishDomainEvent, getApiDefinitions: getObserveDomainEventApiDefinitions } =

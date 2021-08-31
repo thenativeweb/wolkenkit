@@ -52,4 +52,65 @@ suite('setup store priority-queue postgres', function (): void {
 
     assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
   });
+
+  test(`fails if invalid 'encrypt-connection' options are given.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database
+    } = connectionOptions.postgresSsl;
+
+    const tableNameItems = v4();
+    const tableNamePriorityQueue = v4();
+
+    const setupPostgresPriorityQueueStoreCommand = `node ${cliPath} --verbose setup store priority-queue postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-items ${tableNameItems} --table-name-priority-queue ${tableNamePriorityQueue} --encrypt-connection '{"not": "even close"}'`;
+    const { stdout } = shell.exec(setupPostgresPriorityQueueStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Unexpected additional property: not (at encryptConnection.not).');
+  });
+
+  test(`sets up a postgres database using ssl.`, async (): Promise<void> => {
+    const {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      encryptConnection
+    } = connectionOptions.postgresSsl;
+
+    const tableNameItems = v4();
+    const tableNamePriorityQueue = v4();
+    const encryptConnectionJson = JSON.stringify(encryptConnection);
+
+    const setupPostgresPriorityQueueStoreCommand = `node ${cliPath} --verbose setup store priority-queue postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-items ${tableNameItems} --table-name-priority-queue ${tableNamePriorityQueue} --encrypt-connection '${encryptConnectionJson}'`;
+    const { stdout } = shell.exec(setupPostgresPriorityQueueStoreCommand, { silent: false });
+
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL priority queue store.');
+
+    const pool = new Pool({
+      host: hostName,
+      port,
+      user: userName,
+      password,
+      database
+    });
+    const connection = await retry(async (): Promise<PoolClient> => await pool.connect());
+
+    let checkTableResult = await connection.query({
+      name: 'check table items',
+      text: `SELECT to_regclass('${tableNameItems}');`
+    });
+
+    assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+
+    checkTableResult = await connection.query({
+      name: 'check table priority queue',
+      text: `SELECT to_regclass('${tableNamePriorityQueue}');`
+    });
+
+    assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+  });
 });

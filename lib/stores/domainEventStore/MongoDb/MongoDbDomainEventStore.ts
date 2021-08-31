@@ -54,7 +54,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       const connection = await MongoClient.connect(
         connectionString,
         // eslint-disable-next-line id-length
-        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
+        { w: 1 }
       );
 
       return connection;
@@ -65,7 +65,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbDomainEventStore.onUnexpectedClose);
+    client.on('close', MongoDbDomainEventStore.onUnexpectedClose);
 
     const collections = {
       domainEvents: db.collection(collectionNames.domainEvents),
@@ -145,11 +145,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const domainEventCount = await this.collections.domainEvents.findOne({
+    const domainEvent = await this.collections.domainEvents.findOne({
       'metadata.causationId': causationId
     });
 
-    return domainEventCount !== null;
+    return domainEvent !== undefined;
   }
 
   public async getDomainEventsByCorrelationId ({ correlationId }: {
@@ -513,15 +513,17 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }
 
   public async setup (): Promise<void> {
+    await this.collections.domainEvents.createIndex(
+      { 'aggregateIdentifier.aggregate.id': 1, 'metadata.revision': 1 },
+      {
+        name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
+        unique: true
+      }
+    );
     await this.collections.domainEvents.createIndexes([
       {
         key: { 'aggregateIdentifier.aggregate.id': 1 },
         name: `${this.collectionNames.domainEvents}_aggregateId`
-      },
-      {
-        key: { 'aggregateIdentifier.aggregate.id': 1, 'metadata.revision': 1 },
-        name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
-        unique: true
       },
       {
         key: { 'metadata.causationId': 1 },
@@ -536,17 +538,17 @@ class MongoDbDomainEventStore implements DomainEventStore {
         name: `${this.collectionNames.domainEvents}_timestamp`
       }
     ]);
-    await this.collections.snapshots.createIndexes([
+    await this.collections.snapshots.createIndex(
+      { 'aggregateIdentifier.aggregate.id': 1 },
       {
-        key: { 'aggregateIdentifier.aggregate.id': 1 },
         name: `${this.collectionNames.snapshots}_aggregateId`,
         unique: true
       }
-    ]);
+    );
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbDomainEventStore.onUnexpectedClose);
+    this.client.removeListener('close', MongoDbDomainEventStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }

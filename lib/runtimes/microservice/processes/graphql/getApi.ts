@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
+import { getApi as getLandingPageApi } from '../../../../apis/landingPage/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
 import { Notification } from '../../../../common/elements/Notification';
@@ -35,9 +36,9 @@ const getApi = async function ({
     publishDomainEvent: PublishDomainEvent;
     initializeGraphQlOnServer: InitializeGraphQlOnServer | undefined;
   }> {
-  const api = express();
   const corsOrigin = getCorsOrigin(configuration.corsOrigin);
 
+  const { api: landingPageApi } = await getLandingPageApi();
   const { api: handleCommandGraphqlApi, publishDomainEvent: publishDomainEventToGraphqlApi, initializeGraphQlOnServer } = await getGraphqlApi({
     corsOrigin,
     application,
@@ -58,6 +59,9 @@ const getApi = async function ({
     webSocketEndpoint: '/graphql/v2/'
   });
 
+  const api = express();
+
+  api.use(landingPageApi);
   api.use('/graphql', handleCommandGraphqlApi);
 
   // eslint-disable-next-line unicorn/consistent-function-scoping

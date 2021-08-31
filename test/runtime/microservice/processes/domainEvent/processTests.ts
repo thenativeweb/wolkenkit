@@ -1,5 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { Configuration as DomainEventConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEvent/Configuration';
@@ -158,6 +159,18 @@ suite('domain event process', function (): void {
     stopProcess = undefined;
     stopProcessPublisher = undefined;
     stopProcessDomainEventStore = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {

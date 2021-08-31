@@ -4,12 +4,12 @@ const versions = {
     'docker-compose': '3.7'
   },
   packages: {
-    typescript: '4.2.4'
+    typescript: '4.3.2'
   },
   dockerImages: {
     minio: 'RELEASE.2019-10-12T01-39-57Z',
     mongodb: '4.4.3',
-    postgres: '13.3-alpine',
+    postgres: '13.4-alpine',
     traefik: '2.3'
   }
 };

@@ -44,7 +44,7 @@ class MongoDbLockStore implements LockStore {
       const connection = await MongoClient.connect(
         connectionString,
         // eslint-disable-next-line id-length
-        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
+        { w: 1 }
       );
 
       return connection;
@@ -55,7 +55,7 @@ class MongoDbLockStore implements LockStore {
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbLockStore.onUnexpectedClose);
+    client.on('close', MongoDbLockStore.onUnexpectedClose);
 
     const collections = {
       locks: db.collection(collectionNames.locks)
@@ -148,15 +148,17 @@ class MongoDbLockStore implements LockStore {
   }
 
   public async setup (): Promise<void> {
-    await this.collections.locks.createIndexes([{
-      key: { value: 1 },
-      name: `${this.collectionNames.locks}_value`,
-      unique: true
-    }]);
+    await this.collections.locks.createIndex(
+      { value: 1 },
+      {
+        name: `${this.collectionNames.locks}_value`,
+        unique: true
+      }
+    );
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbLockStore.onUnexpectedClose);
+    this.client.removeListener('close', MongoDbLockStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }

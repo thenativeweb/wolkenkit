@@ -1,7 +1,9 @@
 import { getPortSchema } from './getPortSchema';
+import { getPostgresConnectionOptionsSchema } from '../../../stores/utils/postgres/getPostgresConnectionOptionsSchema';
 import { Schema } from '../../../common/elements/Schema';
 
 const portSchema = getPortSchema();
+const connectionOptionsSchema = getPostgresConnectionOptionsSchema();
 
 const getConsumerProgressStoreOptionsSchema = function (): Schema {
   return {
@@ -58,7 +60,7 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
           userName: { type: 'string', minLength: 1 },
           password: { type: 'string', minLength: 1 },
           database: { type: 'string', minLength: 1 },
-          encryptConnection: { type: 'boolean' },
+          encryptConnection: connectionOptionsSchema,
           tableNames: {
             type: 'object',
             properties: {

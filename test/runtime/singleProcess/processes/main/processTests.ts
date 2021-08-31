@@ -1,8 +1,8 @@
 import { Agent } from 'http';
 import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
-import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand';
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
@@ -14,7 +14,6 @@ import { getTestApplicationDirectory } from '../../../../shared/applications/get
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { HttpLink } from 'apollo-link-http';
 import { Client as ManageFileClient } from '../../../../../lib/apis/manageFile/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
@@ -25,13 +24,11 @@ import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import streamToString from 'stream-to-string';
 import { Client as SubscribeNotificationsClient } from '../../../../../lib/apis/subscribeNotifications/http/v2/Client';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
-import { WebSocketLink } from 'apollo-link-ws';
-import ws from 'ws';
-import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import { WebSocketLink } from '../../../../shared/WebSocketLink';
+import { ApolloClient, HttpLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client';
 import * as errors from '../../../../../lib/common/errors';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
@@ -119,6 +116,18 @@ suite('main process', function (): void {
     }
 
     stopProcess = undefined;
+  });
+
+  suite('landing page', (): void => {
+    test('serves the landing page.', async (): Promise<void> => {
+      const { data } = await axios({
+        method: 'GET',
+        url: 'http://localhost/',
+        socketPath: socket
+      });
+
+      assert.that(data as string).is.containing('wolkenkit');
+    });
   });
 
   suite('getHealth', (): void => {
@@ -310,12 +319,9 @@ suite('main process', function (): void {
     });
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/graphql/v2/`,
-        {},
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/graphql/v2/`
+      });
       const cache = new InMemoryCache();
 
       const client = new ApolloClient<NormalizedCacheObject>({
@@ -359,12 +365,9 @@ suite('main process', function (): void {
     });
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
-      const subscriptionClient = new SubscriptionClient(
-        `ws+unix://${socket}:/graphql/v2/`,
-        {},
-        ws
-      );
-      const link = new WebSocketLink(subscriptionClient);
+      const link = new WebSocketLink({
+        url: `ws+unix://${socket}:/graphql/v2/`
+      });
       const cache = new InMemoryCache();
 
       const client = new ApolloClient<NormalizedCacheObject>({
