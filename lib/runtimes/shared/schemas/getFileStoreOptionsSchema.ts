@@ -35,6 +35,16 @@ const getFileStoreOptionsSchema = function (): Schema {
         },
         required: [ 'type', 'accessKey', 'secretKey', 'bucketName' ],
         additionalProperties: false
+      },
+      {
+        properties: {
+          type: { type: 'string', enum: [ 'Azure' ]},
+          accountName: { type: 'string', minLength: 1 },
+          accountKey: { type: 'string', minLength: 1 },
+          containerName: { type: 'string', minLength: 1 }
+        },
+        required: [ 'type', 'accountName', 'accountKey', 'containerName' ],
+        additionalProperties: false
       }
     ]
   };

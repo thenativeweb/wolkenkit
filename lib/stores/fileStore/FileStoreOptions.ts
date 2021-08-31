@@ -1,3 +1,4 @@
+import { AzureFileStoreOptions } from './Azure';
 import { FileSystemFileStoreOptions } from './FileSystem';
 import { InMemoryFileStoreOptions } from './InMemory';
 import { S3FileStoreOptions } from './S3';
@@ -5,4 +6,5 @@ import { S3FileStoreOptions } from './S3';
 export type FileStoreOptions =
   FileSystemFileStoreOptions |
   InMemoryFileStoreOptions |
-  S3FileStoreOptions;
+  S3FileStoreOptions |
+  AzureFileStoreOptions;

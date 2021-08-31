@@ -1,3 +1,4 @@
+import { AzureFileStore } from './Azure';
 import { FileStore } from './FileStore';
 import { FileStoreOptions } from './FileStoreOptions';
 import { FileSystemFileStore } from './FileSystem';
@@ -17,6 +18,9 @@ const createFileStore = async function (
     }
     case 'S3': {
       return S3FileStore.create(options);
+    }
+    case 'Azure': {
+      return AzureFileStore.create(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();
