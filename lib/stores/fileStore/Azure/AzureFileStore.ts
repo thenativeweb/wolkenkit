@@ -14,6 +14,24 @@ const ONE_MEGABYTE = 1_024 * 1_024;
 const uploadOptions = { bufferSize: 2 * ONE_MEGABYTE, maxBuffers: 20 };
 
 // A helper method used to read a Node.js readable stream into a Buffer
+const streamToBuffer = async (readableStream: NodeJS.ReadableStream | undefined): Promise<Buffer> =>
+  new Promise((resolve, reject): void => {
+    const chunks: any[] = [];
+
+    if (!readableStream) {
+      return reject(new Error('ReadableStream is undefined'));
+    }
+
+    readableStream.on('data', (data: any): void => {
+      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+    });
+
+    readableStream.on('end', (): void => {
+      resolve(Buffer.concat(chunks));
+    });
+
+    readableStream.on('error', reject);
+  });
 
 class AzureFileStore implements FileStore {
   protected containerName: string;
@@ -122,9 +140,9 @@ class AzureFileStore implements FileStore {
 
     // downloadBlockBlobResponse.readableStreamBody?.pipe(metadataStream.push());
 
-    // Xconst buffer = streamToBuffer(downloadBlockBlobResponse.readableStreamBody?.pipe());
+    const buffer = streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
 
-    metadataStream.push(downloadBlockBlobResponse.readableStreamBody);
+    metadataStream.push(buffer);
     metadataStream.push(null);
 
     return metadataStream;
