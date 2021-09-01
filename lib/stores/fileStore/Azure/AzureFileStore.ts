@@ -140,7 +140,7 @@ class AzureFileStore implements FileStore {
 
     // downloadBlockBlobResponse.readableStreamBody?.pipe(metadataStream.push());
 
-    const buffer = streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+    const buffer = await streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
 
     metadataStream.push(buffer);
     metadataStream.push(null);
