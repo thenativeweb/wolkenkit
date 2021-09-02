@@ -7,29 +7,34 @@ import { streamToBuffer } from '@jorgeferrero/stream-to-buffer';
 import streamToString from 'stream-to-string';
 import {
   BlobServiceClient,
+  ContainerClient,
   newPipeline,
   StorageSharedKeyCredential
 } from '@azure/storage-blob';
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const ONE_MEGABYTE = 1_024 * 1_024;
-const uploadOptions = { bufferSize: 2 * ONE_MEGABYTE, maxBuffers: 20 };
+import * as errors from '../../../common/errors';
 
 class AzureFileStore implements FileStore {
-  protected containerName: string;
+  protected containerClient: ContainerClient;
 
-  protected blobServiceClient: BlobServiceClient;
+  protected bufferSize: number;
+
+  protected maxConcurrency: number;
 
   protected constructor ({
     accountName,
     accountKey,
-    containerName
+    containerName,
+    bufferSize,
+    maxConcurrency
   }: {
     accountName: string;
     accountKey: string;
     containerName: string;
+    bufferSize: number;
+    maxConcurrency: number;
   }) {
-    this.containerName = containerName;
+    this.bufferSize = bufferSize;
+    this.maxConcurrency = maxConcurrency;
 
     const sharedKeyCredential = new StorageSharedKeyCredential(
       accountName,
@@ -38,18 +43,24 @@ class AzureFileStore implements FileStore {
 
     const pipeline = newPipeline(sharedKeyCredential);
 
-    this.blobServiceClient = new BlobServiceClient(
+    const blobServiceClient = new BlobServiceClient(
       `https://${accountName}.blob.core.windows.net`,
       pipeline
+    );
+
+    this.containerClient = blobServiceClient.getContainerClient(
+      containerName
     );
   }
 
   public static async create ({
     accountName,
     accountKey,
-    containerName
+    containerName,
+    bufferSize,
+    maxConcurrency
   }: AzureFileStoreOptions): Promise<AzureFileStore> {
-    return new AzureFileStore({ accountName, accountKey, containerName });
+    return new AzureFileStore({ accountName, accountKey, containerName, bufferSize, maxConcurrency });
   }
 
   public async addFile ({
@@ -60,10 +71,15 @@ class AzureFileStore implements FileStore {
   }: FileAddMetadata & {
     stream: Readable;
   }): Promise<FileMetadata> {
-    const containerClient = this.blobServiceClient.getContainerClient(
-      this.containerName
-    );
-    let blockBlobClient = containerClient.getBlockBlobClient(`${id}/data`);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+
+    const dataExists = await blockBlobClientData.exists();
+    const metadataExists = await blockBlobClientMetadata.exists();
+
+    if (dataExists || metadataExists) {
+      throw new errors.FileAlreadyExists();
+    }
 
     let contentLength = 0;
 
@@ -71,10 +87,10 @@ class AzureFileStore implements FileStore {
       contentLength += data.length;
     });
 
-    await blockBlobClient.uploadStream(
+    await blockBlobClientData.uploadStream(
       stream,
-      uploadOptions.bufferSize,
-      uploadOptions.maxBuffers,
+      this.bufferSize,
+      this.maxConcurrency,
       {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         blobHTTPHeaders: {
@@ -90,21 +106,12 @@ class AzureFileStore implements FileStore {
       contentLength
     };
 
-    blockBlobClient = containerClient.getBlockBlobClient(`${id}/metadata.json`);
-
-    // Xconst metadataStream = new Readable();
-    // metadataStream.push(JSON.stringify(metadata));
-    // metadataStream.push(null);
-
-    // eslint-disable-next-line no-console
-    console.log(metadata);
-
     const metadataStream = Readable.from(JSON.stringify(metadata));
 
-    await blockBlobClient.uploadStream(
+    await blockBlobClientMetadata.uploadStream(
       metadataStream,
-      uploadOptions.bufferSize,
-      uploadOptions.maxBuffers,
+      this.bufferSize,
+      this.maxConcurrency,
       {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         blobHTTPHeaders: {
@@ -117,38 +124,34 @@ class AzureFileStore implements FileStore {
   }
 
   public async getFile ({ id }: { id: string }): Promise<Readable> {
-    const containerClient = this.blobServiceClient.getContainerClient(
-      this.containerName
-    );
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
 
-    // Xconst blobName = '4054751448528897-Anmeldung.pdf';
-    const blockBlobClient = containerClient.getBlockBlobClient(`${id}/data`);
-    const blockBlobResponse = await blockBlobClient.download(0);
+    const dataExists = await blockBlobClientData.exists();
+    const metadataExists = await blockBlobClientMetadata.exists();
 
-    // XrXeturn <Readable>{};
+    if (!dataExists || !metadataExists) {
+      throw new errors.FileNotFound();
+    }
 
-    //   if (downloadBlockBlobResponse.readableStreamBody) {
-    // const metadataStream = new Readable();
-
-    // Readable.from(downloadBlockBlobResponse.readableStreamBody);
-
-    // const stream = fs.createReadStream(fileData);
-
-    // downloadBlockBlobResponse.readableStreamBody?.pipe(metadataStream.push());
+    const blockBlobResponse = await blockBlobClientData.download(0);
     const buffer = await streamToBuffer(blockBlobResponse.readableStreamBody!);
 
     return Readable.from(buffer);
   }
 
   public async getMetadata ({ id }: { id: string }): Promise<FileMetadata> {
-    const containerClient = this.blobServiceClient.getContainerClient(
-      this.containerName
-    );
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
 
-    const blockBlobClient = containerClient.getBlockBlobClient(
-      `${id}/metadata.json`
-    );
-    const blockBlobResponse = await blockBlobClient.download(0);
+    const dataExists = await blockBlobClientData.exists();
+    const metadataExists = await blockBlobClientMetadata.exists();
+
+    if (!dataExists || !metadataExists) {
+      throw new errors.FileNotFound();
+    }
+
+    const blockBlobResponse = await blockBlobClientMetadata.download(0);
 
     const rawMetadata = await streamToString(
       blockBlobResponse.readableStreamBody!
@@ -159,16 +162,24 @@ class AzureFileStore implements FileStore {
     return metadata;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public async removeFile ({ id }: { id: string }): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log(id);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+
+    const dataExists = await blockBlobClientData.exists();
+    const metadataExists = await blockBlobClientMetadata.exists();
+
+    if (!dataExists || !metadataExists) {
+      throw new errors.FileNotFound();
+    }
+
+    await blockBlobClientData.delete();
+    await blockBlobClientMetadata.delete();
   }
 
   // eslint-disable-next-line class-methods-use-this
   public async setup (): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log('setup');
+    // There is nothing to do here.
   }
 
   // eslint-disable-next-line class-methods-use-this

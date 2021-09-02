@@ -3,4 +3,6 @@ export interface AzureFileStoreOptions {
   accountName: string;
   accountKey: string;
   containerName: string;
+  bufferSize: number;
+  maxConcurrency: number;
 }
