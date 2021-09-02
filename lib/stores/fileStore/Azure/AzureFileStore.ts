@@ -48,9 +48,7 @@ class AzureFileStore implements FileStore {
       pipeline
     );
 
-    this.containerClient = blobServiceClient.getContainerClient(
-      containerName
-    );
+    this.containerClient = blobServiceClient.getContainerClient(containerName);
   }
 
   public static async create ({
@@ -60,7 +58,13 @@ class AzureFileStore implements FileStore {
     bufferSize,
     maxConcurrency
   }: AzureFileStoreOptions): Promise<AzureFileStore> {
-    return new AzureFileStore({ accountName, accountKey, containerName, bufferSize, maxConcurrency });
+    return new AzureFileStore({
+      accountName,
+      accountKey,
+      containerName,
+      bufferSize,
+      maxConcurrency
+    });
   }
 
   public async addFile ({
@@ -71,8 +75,12 @@ class AzureFileStore implements FileStore {
   }: FileAddMetadata & {
     stream: Readable;
   }): Promise<FileMetadata> {
-    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
-    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(
+      `${id}/data`
+    );
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(
+      `${id}/metadata.json`
+    );
 
     const dataExists = await blockBlobClientData.exists();
     const metadataExists = await blockBlobClientMetadata.exists();
@@ -124,8 +132,12 @@ class AzureFileStore implements FileStore {
   }
 
   public async getFile ({ id }: { id: string }): Promise<Readable> {
-    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
-    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(
+      `${id}/data`
+    );
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(
+      `${id}/metadata.json`
+    );
 
     const dataExists = await blockBlobClientData.exists();
     const metadataExists = await blockBlobClientMetadata.exists();
@@ -141,8 +153,12 @@ class AzureFileStore implements FileStore {
   }
 
   public async getMetadata ({ id }: { id: string }): Promise<FileMetadata> {
-    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
-    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(
+      `${id}/data`
+    );
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(
+      `${id}/metadata.json`
+    );
 
     const dataExists = await blockBlobClientData.exists();
     const metadataExists = await blockBlobClientMetadata.exists();
@@ -163,8 +179,12 @@ class AzureFileStore implements FileStore {
   }
 
   public async removeFile ({ id }: { id: string }): Promise<void> {
-    const blockBlobClientData = this.containerClient.getBlockBlobClient(`${id}/data`);
-    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(`${id}/metadata.json`);
+    const blockBlobClientData = this.containerClient.getBlockBlobClient(
+      `${id}/data`
+    );
+    const blockBlobClientMetadata = this.containerClient.getBlockBlobClient(
+      `${id}/metadata.json`
+    );
 
     const dataExists = await blockBlobClientData.exists();
     const metadataExists = await blockBlobClientMetadata.exists();
