@@ -1,7 +1,7 @@
 {
   "name": "wolkenkit",
   "version": "4.0.0-internal.114",
-  "description": "xwolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
+  "description": "wolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
   "contributors": [
     {
       "name": "Golo Roden",
@@ -126,6 +126,7 @@
   },
   "dependencies": {
     "@azure/storage-blob": "12.7.0",
+    "@jorgeferrero/stream-to-buffer": "2.0.6",
     "@types/async-retry": "1.4.3",
     "@types/body-parser": "1.19.1",
     "@types/common-tags": "1.8.1",

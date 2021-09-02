@@ -3,6 +3,7 @@ import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { Readable } from 'stream';
+import { streamToBuffer } from '@jorgeferrero/stream-to-buffer';
 import streamToString from 'stream-to-string';
 import {
   BlobServiceClient,
@@ -19,7 +20,11 @@ class AzureFileStore implements FileStore {
 
   protected blobServiceClient: BlobServiceClient;
 
-  protected constructor ({ accountName, accountKey, containerName }: {
+  protected constructor ({
+    accountName,
+    accountKey,
+    containerName
+  }: {
     accountName: string;
     accountKey: string;
     containerName: string;
@@ -47,11 +52,24 @@ class AzureFileStore implements FileStore {
     return new AzureFileStore({ accountName, accountKey, containerName });
   }
 
-  public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
+  public async addFile ({
+    id,
+    name,
+    contentType,
+    stream
+  }: FileAddMetadata & {
     stream: Readable;
   }): Promise<FileMetadata> {
-    const containerClient = this.blobServiceClient.getContainerClient(this.containerName);
+    const containerClient = this.blobServiceClient.getContainerClient(
+      this.containerName
+    );
     let blockBlobClient = containerClient.getBlockBlobClient(`${id}/data`);
+
+    let contentLength = 0;
+
+    stream.on('data', (data): void => {
+      contentLength += data.length;
+    });
 
     await blockBlobClient.uploadStream(
       stream,
@@ -65,12 +83,6 @@ class AzureFileStore implements FileStore {
       }
     );
 
-    let contentLength = 0;
-
-    stream.on('data', (data): void => {
-      contentLength += data.length;
-    });
-
     const metadata = {
       id,
       name,
@@ -80,10 +92,14 @@ class AzureFileStore implements FileStore {
 
     blockBlobClient = containerClient.getBlockBlobClient(`${id}/metadata.json`);
 
-    const metadataStream = new Readable();
+    // Xconst metadataStream = new Readable();
+    // metadataStream.push(JSON.stringify(metadata));
+    // metadataStream.push(null);
 
-    metadataStream.push(JSON.stringify(metadata));
-    metadataStream.push(null);
+    // eslint-disable-next-line no-console
+    console.log(metadata);
+
+    const metadataStream = Readable.from(JSON.stringify(metadata));
 
     await blockBlobClient.uploadStream(
       metadataStream,
@@ -100,11 +116,10 @@ class AzureFileStore implements FileStore {
     return metadata;
   }
 
-  public async getFile ({ id }: {
-    id: string;
-  }): Promise<Readable> {
-    const containerClient =
-      this.blobServiceClient.getContainerClient(this.containerName);
+  public async getFile ({ id }: { id: string }): Promise<Readable> {
+    const containerClient = this.blobServiceClient.getContainerClient(
+      this.containerName
+    );
 
     // Xconst blobName = '4054751448528897-Anmeldung.pdf';
     const blockBlobClient = containerClient.getBlockBlobClient(`${id}/data`);
@@ -113,43 +128,39 @@ class AzureFileStore implements FileStore {
     // XrXeturn <Readable>{};
 
     //   if (downloadBlockBlobResponse.readableStreamBody) {
-    const metadataStream = new Readable();
+    // const metadataStream = new Readable();
 
     // Readable.from(downloadBlockBlobResponse.readableStreamBody);
 
     // const stream = fs.createReadStream(fileData);
 
     // downloadBlockBlobResponse.readableStreamBody?.pipe(metadataStream.push());
-    const buffer = await streamToString(blockBlobResponse.readableStreamBody!);
+    const buffer = await streamToBuffer(blockBlobResponse.readableStreamBody!);
 
-    // /X1const buffer = await streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
-
-    metadataStream.push(buffer);
-    metadataStream.push(null);
-
-    return metadataStream;
-
-    // Ythrow new Error('asdf');
+    return Readable.from(buffer);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  public async getMetadata ({ id }: {
-    id: string;
-  }): Promise<FileMetadata> {
-    const metadata = {
-      id,
-      name: 'asd',
-      contentType: '',
-      contentLength: 0
-    };
+  public async getMetadata ({ id }: { id: string }): Promise<FileMetadata> {
+    const containerClient = this.blobServiceClient.getContainerClient(
+      this.containerName
+    );
+
+    const blockBlobClient = containerClient.getBlockBlobClient(
+      `${id}/metadata.json`
+    );
+    const blockBlobResponse = await blockBlobClient.download(0);
+
+    const rawMetadata = await streamToString(
+      blockBlobResponse.readableStreamBody!
+    );
+
+    const metadata = JSON.parse(rawMetadata);
 
     return metadata;
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async removeFile ({ id }: {
-    id: string;
-  }): Promise<void> {
+  public async removeFile ({ id }: { id: string }): Promise<void> {
     // eslint-disable-next-line no-console
     console.log(id);
   }
