@@ -21,21 +21,26 @@ class AzureFileStore implements FileStore {
   protected maxConcurrency: number;
 
   protected constructor ({
-    accountName,
-    accountKey,
-    containerName,
+    containerClient,
     bufferSize,
     maxConcurrency
   }: {
-    accountName: string;
-    accountKey: string;
-    containerName: string;
+    containerClient: ContainerClient;
     bufferSize: number;
     maxConcurrency: number;
   }) {
     this.bufferSize = bufferSize;
     this.maxConcurrency = maxConcurrency;
+    this.containerClient = containerClient;
+  }
 
+  public static async create ({
+    accountName,
+    accountKey,
+    containerName,
+    bufferSize,
+    maxConcurrency
+  }: AzureFileStoreOptions): Promise<AzureFileStore> {
     const sharedKeyCredential = new StorageSharedKeyCredential(
       accountName,
       accountKey
@@ -48,20 +53,10 @@ class AzureFileStore implements FileStore {
       pipeline
     );
 
-    this.containerClient = blobServiceClient.getContainerClient(containerName);
-  }
+    const containerClient = blobServiceClient.getContainerClient(containerName);
 
-  public static async create ({
-    accountName,
-    accountKey,
-    containerName,
-    bufferSize,
-    maxConcurrency
-  }: AzureFileStoreOptions): Promise<AzureFileStore> {
     return new AzureFileStore({
-      accountName,
-      accountKey,
-      containerName,
+      containerClient,
       bufferSize,
       maxConcurrency
     });
