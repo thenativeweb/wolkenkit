@@ -51,9 +51,9 @@ class AzureFileStore implements FileStore {
     const pipeline = newPipeline(sharedKeyCredential);
 
     const url =
-      hostName === 'localhost'
-        ? `http://${hostName}:${port}/${accountName}`
-        : `https://${accountName}.blob.core.windows.net`;
+      hostName === 'localhost' ?
+        `http://${hostName}:${port}/${accountName}` :
+        `https://${accountName}.blob.core.windows.net`;
 
     const blobServiceClient = new BlobServiceClient(
       url,
