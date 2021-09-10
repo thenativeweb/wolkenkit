@@ -20,7 +20,7 @@ const azurite = {
         -d
         -p ${port}:10000
         --name test-azurite
-        mcr.microsoft.com/azure-storage/azurite
+        kusidock/wolkenkit-azurite:latest
     `);
 
     try {
