@@ -4,7 +4,7 @@ import { buildImages } from '../../docker/buildImages';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
-import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
+import { azurite, mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
 import * as errors from '../../lib/common/errors';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -26,6 +26,7 @@ import * as errors from '../../lib/common/errors';
     await buildImages();
 
     await Promise.all([
+      azurite.start(),
       mariaDb.start(),
       minio.start(),
       mongoDb.start(),

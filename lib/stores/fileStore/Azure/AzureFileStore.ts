@@ -16,9 +16,9 @@ import * as errors from '../../../common/errors';
 class AzureFileStore implements FileStore {
   protected containerClient: ContainerClient;
 
-  protected bufferSize: number;
+  protected bufferSize?: number;
 
-  protected maxConcurrency: number;
+  protected maxConcurrency?: number;
 
   protected constructor ({
     containerClient,
@@ -26,8 +26,8 @@ class AzureFileStore implements FileStore {
     maxConcurrency
   }: {
     containerClient: ContainerClient;
-    bufferSize: number;
-    maxConcurrency: number;
+    bufferSize?: number;
+    maxConcurrency?: number;
   }) {
     this.bufferSize = bufferSize;
     this.maxConcurrency = maxConcurrency;
@@ -35,6 +35,8 @@ class AzureFileStore implements FileStore {
   }
 
   public static async create ({
+    hostName,
+    port,
     accountName,
     accountKey,
     containerName,
@@ -48,8 +50,13 @@ class AzureFileStore implements FileStore {
 
     const pipeline = newPipeline(sharedKeyCredential);
 
+    const url =
+      hostName === 'localhost'
+        ? `http://${hostName}:${port}/${accountName}`
+        : `https://${accountName}.blob.core.windows.net`;
+
     const blobServiceClient = new BlobServiceClient(
-      `https://${accountName}.blob.core.windows.net`,
+      url,
       pipeline
     );
 
@@ -60,6 +67,19 @@ class AzureFileStore implements FileStore {
       bufferSize,
       maxConcurrency
     });
+  }
+
+  protected async ensureContainer (): Promise<void> {
+    try {
+      await this.containerClient.create();
+    } catch (ex: unknown) {
+      // If a container already exists and belongs to you,
+      // everything is fine, and we can skip this error.
+
+      if ((ex as any).code !== 'ContainerAlreadyExists') {
+        throw ex;
+      }
+    }
   }
 
   public async addFile ({
@@ -192,9 +212,8 @@ class AzureFileStore implements FileStore {
     await blockBlobClientMetadata.delete();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public async setup (): Promise<void> {
-    // There is nothing to do here.
+    await this.ensureContainer();
   }
 
   // eslint-disable-next-line class-methods-use-this

@@ -2,6 +2,13 @@ import fs from 'fs';
 import path from 'path';
 
 const connectionOptions = {
+  azurite: {
+    hostName: 'localhost',
+    port: 10_000,
+    accountName: 'devstoreaccount1',
+    accountKey: 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==',
+    containerName: 'wolkenkit'
+  },
   mariaDb: {
     hostName: 'localhost',
     port: 3_307,

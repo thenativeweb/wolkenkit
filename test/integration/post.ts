@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { flaschenpost } from 'flaschenpost';
-import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
+import { azurite, mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async function (): Promise<void> {
@@ -9,6 +9,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
 
   try {
     await Promise.all([
+      azurite.stop(),
       mariaDb.stop(),
       minio.stop(),
       mongoDb.stop(),

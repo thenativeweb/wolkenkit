@@ -1,3 +1,4 @@
+import { azurite } from './azurite';
 import { mariaDb } from './mariaDb';
 import { minio } from './minio';
 import { mongoDb } from './mongoDb';
@@ -8,6 +9,7 @@ import { redis } from './redis';
 import { sqlServer } from './sqlServer';
 
 export {
+  azurite,
   mariaDb,
   minio,
   mongoDb,
