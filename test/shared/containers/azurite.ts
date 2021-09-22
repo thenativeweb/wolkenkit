@@ -20,7 +20,7 @@ const azurite = {
         -d
         -p ${port}:10000
         --name test-azurite
-        kusidock/wolkenkit-azurite:latest
+        thenativeweb/wolkenkit-azurite:latest
     `);
 
     try {
