@@ -167,7 +167,7 @@
     "graphql": "15.6.0",
     "graphql-ws": "5.5.0",
     "helmet": "4.6.0",
-    "ioredis": "4.27.9",
+    "ioredis": "4.27.10",
     "is-typescript": "4.0.6",
     "isolated": "3.0.25",
     "limes": "6.1.9",
@@ -193,7 +193,7 @@
     "untildify": "4.0.0",
     "uuid": "8.3.2",
     "validate-value": "9.1.6",
-    "ws": "8.2.2"
+    "ws": "8.2.3"
   },
   "devDependencies": {
     "@apollo/client": "3.4.14",
