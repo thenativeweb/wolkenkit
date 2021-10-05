@@ -159,7 +159,7 @@
     "cors": "2.8.5",
     "defekt": "8.0.0",
     "ejs": "3.1.6",
-    "eventemitter2": "6.4.4",
+    "eventemitter2": "6.4.5",
     "express": "4.17.1",
     "flaschenpost": "5.0.49",
     "get-cors-origin": "4.0.24",
@@ -193,11 +193,11 @@
     "untildify": "4.0.0",
     "uuid": "8.3.2",
     "validate-value": "9.1.6",
-    "ws": "8.2.2"
+    "ws": "8.2.3"
   },
   "devDependencies": {
-    "@apollo/client": "3.4.14",
-    "@types/react": "17.0.24",
+    "@apollo/client": "3.4.15",
+    "@types/react": "17.0.27",
     "@types/react-dom": "17.0.9",
     "assertthat": "6.3.13",
     "graphql-tag": "2.12.5",
