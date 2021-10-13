@@ -196,7 +196,7 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "@apollo/client": "3.4.15",
+    "@apollo/client": "3.4.16",
     "@types/react": "17.0.27",
     "@types/react-dom": "17.0.9",
     "assertthat": "6.3.13",
