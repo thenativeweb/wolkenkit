@@ -172,7 +172,7 @@
     "isolated": "3.0.25",
     "limes": "6.1.9",
     "lodash": "4.17.21",
-    "minio": "7.0.19",
+    "minio": "7.0.20",
     "mongodb": "4.1.0",
     "mssql": "7.2.1",
     "mysql": "2.18.1",
@@ -197,7 +197,7 @@
   },
   "devDependencies": {
     "@apollo/client": "3.4.16",
-    "@types/react": "17.0.34",
+    "@types/react": "17.0.36",
     "@types/react-dom": "17.0.11",
     "assertthat": "6.3.13",
     "graphql-tag": "2.12.5",
