@@ -167,7 +167,7 @@
     "graphql": "15.7.2",
     "graphql-ws": "5.5.0",
     "helmet": "4.6.0",
-    "ioredis": "4.28.0",
+    "ioredis": "4.28.1",
     "is-typescript": "4.0.6",
     "isolated": "3.0.25",
     "limes": "6.1.9",
@@ -196,8 +196,8 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "@apollo/client": "3.4.16",
-    "@types/react": "17.0.36",
+    "@apollo/client": "3.5.5",
+    "@types/react": "17.0.37",
     "@types/react-dom": "17.0.11",
     "assertthat": "6.3.13",
     "graphql-tag": "2.12.5",
