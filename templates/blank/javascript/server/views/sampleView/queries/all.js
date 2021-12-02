@@ -8,7 +8,9 @@ const all = {
   getResultItemSchema () {
     return {
       type: 'object',
-      properties: {},
+      properties: {
+          id: { type: "string" },
+      },
       required: [],
       additionalProperties: false
     };

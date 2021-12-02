@@ -10,7 +10,9 @@ export const all: QueryHandlerReturnsStream<AllResultItem, Infrastructure> = {
   getResultItemSchema (): ApiSchema {
     return {
       type: 'object',
-      properties: {},
+      properties: {
+          id: { type: "string" },
+      },
       required: [],
       additionalProperties: false
     };
