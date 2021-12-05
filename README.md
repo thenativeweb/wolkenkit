@@ -403,3 +403,12 @@ While working on wolkenkit itself, it is sometimes necessary to publish an inter
 ```shell
 $ npx roboter build && npm version 4.0.0-internal.<id> && npm publish --tag internal && git push && git push --tags
 ```
+
+### run your local-development version of Wolkenkit-CLI
+
+In case you want test some changes on the Wolkenkit-CLI. Run the following commands to build and run your changes on Wolkenkit-CLI
+```shell
+$ npx roboter build
+$ cd /path-to-your-project-with-wolkenkit
+$ npx node /path-to-wolkenkit-repository/build/lib/bin/wolkenkit.js dev
+```
