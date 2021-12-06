@@ -11,7 +11,7 @@ export const all: QueryHandlerReturnsStream<AllResultItem, Infrastructure> = {
     return {
       type: 'object',
       properties: {
-          id: { type: "string" },
+        id: { type: 'string' }
       },
       required: [],
       additionalProperties: false

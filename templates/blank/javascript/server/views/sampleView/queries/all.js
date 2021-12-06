@@ -9,7 +9,7 @@ const all = {
     return {
       type: 'object',
       properties: {
-          id: { type: "string" },
+        id: { type: 'string' }
       },
       required: [],
       additionalProperties: false
