@@ -149,7 +149,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       'metadata.causationId': causationId
     });
 
-    return domainEvent !== undefined;
+    return domainEvent !== null;
   }
 
   public async getDomainEventsByCorrelationId ({ correlationId }: {
