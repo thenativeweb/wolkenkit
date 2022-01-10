@@ -88,5 +88,7 @@ suite('setup store priority-queue mysql', function (): void {
     });
 
     assert.that(checkTableResult[0].length).is.equalTo(1);
+
+    pool.end();
   });
 });

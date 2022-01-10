@@ -41,5 +41,7 @@ suite('setup store priority-queue mongodb', function (): void {
       is.true();
     assert.that(await queuesCollection.indexExists(`${collectionNameQueues}_indexInPriorityQueue`)).
       is.true();
+
+    await client.close();
   });
 });
