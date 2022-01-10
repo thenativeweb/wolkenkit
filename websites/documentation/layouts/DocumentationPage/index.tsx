@@ -7,12 +7,13 @@ interface DocumentationPageProps {
 }
 
 const DocumentationPage: FunctionComponent<DocumentationPageProps> = ({
-  children
+  children,
+  pageTitle
 }): ReactElement => (
   <DocumentationPageLayout
     productName='docs'
     navigation={ navigation }
-    siteTitle='wolkenkit Documenation'
+    siteTitle={ pageTitle ?? 'wolkenkit Documenation' }
     yearOfCreation={ 2_016 }
   >
     { children }

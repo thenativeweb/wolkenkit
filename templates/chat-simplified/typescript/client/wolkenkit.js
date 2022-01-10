@@ -67,7 +67,7 @@ const parseNewlineDelimitedStream = function (stream) {
           }
         }
 
-        buffer = lines[lines.length - 1];
+        buffer = lines.at(-1);
       }
     },
 

@@ -49,7 +49,6 @@ const executeStreamQueryHandler = async function ({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
     packageManifest: application.packageManifest
   });
-  // eslint-disable-next-line @typescript-eslint/await-thenable
   const resultStream = await queryHandler.handle(options, {
     client: services.client,
     infrastructure: application.infrastructure,

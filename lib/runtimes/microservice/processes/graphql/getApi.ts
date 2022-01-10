@@ -64,7 +64,6 @@ const getApi = async function ({
   api.use(landingPageApi);
   api.use('/graphql', handleCommandGraphqlApi);
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   const publishDomainEvent: PublishDomainEvent = ({ domainEvent }): void => {
     if (publishDomainEventToGraphqlApi) {
       publishDomainEventToGraphqlApi({ domainEvent });

@@ -7,7 +7,7 @@ import streamToString from 'stream-to-string';
 import { v4 } from 'uuid';
 import * as errors from '../../../../lib/common/errors';
 
-/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-disable mocha/no-top-level-hooks */
 const getTestsFor = function ({ createFileStore }: {
   createFileStore: () => Promise<FileStore>;
 }): void {
@@ -125,7 +125,7 @@ const getTestsFor = function ({ createFileStore }: {
     });
   });
 };
-/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-enable mocha/no-top-level-hooks */
 
 // eslint-disable-next-line mocha/no-exports
 export { getTestsFor };
