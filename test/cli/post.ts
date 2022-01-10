@@ -20,7 +20,7 @@ const postScript: TestPostScript = async (): Promise<void> => {
     ]);
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
-    process.exit(1);
+    throw ex;
   }
 };
 

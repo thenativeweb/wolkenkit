@@ -19,7 +19,7 @@ const preScript: TestPreScript = async (): Promise<void> => {
     }
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
-    process.exit(1);
+    throw ex;
   }
 
   try {
@@ -36,7 +36,7 @@ const preScript: TestPreScript = async (): Promise<void> => {
     ]);
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
-    process.exit(1);
+    throw ex;
   }
 };
 
