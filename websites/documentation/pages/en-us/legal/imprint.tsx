@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-child-element-spacing */
 import { DocumentationPage } from '../../../layouts/DocumentationPage';
 import { Headline, Paragraph } from 'thenativeweb-ux';
 import React, { ReactElement } from 'react';
@@ -53,4 +52,3 @@ export default (): ReactElement => (
     </Paragraph>
   </DocumentationPage>
 );
-/* eslint-enable react/jsx-child-element-spacing */

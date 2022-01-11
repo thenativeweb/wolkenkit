@@ -116,6 +116,7 @@
       "email": "markus.fuerer@imedico.ch"
     }
   ],
+  "private": false,
   "main": "build/lib/wolkenkit.js",
   "types": "build/lib/wolkenkit.d.ts",
   "bin": {
@@ -172,7 +173,7 @@
     "limes": "6.1.9",
     "lodash": "4.17.21",
     "minio": "7.0.23",
-    "mongodb": "4.2.2",
+    "mongodb": "4.3.0",
     "mssql": "7.2.1",
     "mysql": "2.18.1",
     "nocache": "3.0.1",
@@ -207,7 +208,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "record-stdstreams": "3.0.70",
-    "roboter": "11.7.8",
+    "roboter": "12.6.0",
     "run-script-os": "1.1.6",
     "temp": "0.9.4",
     "thenativeweb-ux": "5.9.30",
@@ -215,14 +216,14 @@
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",
-    "postdeps": "npm run concierge versions verify",
-    "postbuild": "npm run concierge documentation build && npm run copy-assets",
     "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/wolkenkit.svg build/assets/wolkenkit.svg && cp assets/logo.svg build/assets/logo.svg && cp assets/landingPage.html build/assets/landingPage.html",
-    "fuzzing:pre": "npx ts-node test/fuzzing/pre.ts",
-    "fuzzing:post": "npx ts-node test/fuzzing/post.ts",
-    "fuzzing:win32": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts & npm run fuzzing:post",
+    "fuzzing": "npx run-script-os",
     "fuzzing:default": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts; npm run fuzzing:post",
-    "fuzzing": "npx run-script-os"
+    "fuzzing:post": "npx ts-node test/fuzzing/post.ts",
+    "fuzzing:pre": "npx ts-node test/fuzzing/pre.ts",
+    "fuzzing:win32": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts & npm run fuzzing:post",
+    "postbuild": "npm run concierge documentation build && npm run copy-assets",
+    "postdeps": "npm run concierge versions verify"
   },
   "repository": {
     "type": "git",

@@ -85,7 +85,6 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
     and <TCommandData extends CommandData>(
       { name, data, id, metadata }: CommandForAggregateSandbox<TCommandData>
     ): SandboxForAggregateWithResult<TState> {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForAggregateWithResult<TState>({
         ...sandboxConfiguration,
         commands: [

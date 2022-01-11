@@ -9,7 +9,6 @@ suite('addMissingPrototype', (): void => {
 
     const withPrototype = addMissingPrototype({ value: withoutPrototype });
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     assert.that(withPrototype.hasOwnProperty).is.ofType('function');
   });
 });

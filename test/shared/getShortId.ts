@@ -9,7 +9,7 @@ const getShortId = function (): string {
   let shuffledAlphabet;
 
   do {
-    shuffledAlphabet = shuffle(alphabet.split('')).join('');
+    shuffledAlphabet = shuffle([ ...alphabet ]).join('');
   } while (digits.includes(shuffledAlphabet[0]));
 
   const shortId = shuffledAlphabet.slice(0, 8);

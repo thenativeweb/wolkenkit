@@ -1,8 +1,6 @@
 // License https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/LICENSE
 
-/* eslint-disable no-script-url */
-/* eslint-disable no-irregular-whitespace */
-/* eslint-disable unicorn/escape-case */
+/* eslint-disable no-script-url, no-irregular-whitespace, unicorn/escape-case */
 export default [
   '',
   'undefined',
@@ -520,3 +518,4 @@ export default [
   '{% print \'x\' * 64 * 1024**3 %}',
   '{{ "".__class__.__mro__[2].__subclasses__()[40]("/etc/passwd").read() }}'
 ];
+/* eslint-enable no-script-url, no-irregular-whitespace, unicorn/escape-case */

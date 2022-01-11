@@ -18,11 +18,9 @@ const mapDomainEvent = async function ({
   domainEventHandler: DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure>;
   services: Services;
 }): Promise<DomainEventWithState<DomainEventData, State>> {
-  /* eslint-disable @typescript-eslint/unbound-method */
   if (!domainEventHandler.map) {
     return domainEventWithState;
   }
-  /* eslint-enable @typescript-eslint/unbound-method */
 
   const clonedDomainEvent = cloneDeep(domainEventWithState);
 

@@ -23,7 +23,6 @@ const startProcess = async function ({ runtime, name, enableDebugMode, portOrSoc
   });
 
   await retry(async (): Promise<void> => {
-    // eslint-disable-next-line unicorn/prefer-ternary
     if (typeof portOrSocket === 'number') {
       await axios({
         method: 'get',
