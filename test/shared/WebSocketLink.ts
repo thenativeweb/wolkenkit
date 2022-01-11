@@ -1,7 +1,7 @@
+import { print } from 'graphql';
 import ws from 'ws';
 import { ApolloLink, FetchResult, Observable, Operation } from '@apollo/client';
 import { Client, ClientOptions, createClient } from 'graphql-ws';
-import { GraphQLError, print } from 'graphql';
 
 // This snippet is taken from an example in the
 // [graphql-ws readme](https://github.com/enisdenjo/graphql-ws).
