@@ -39,5 +39,7 @@ suite('setup store consumer-progress mongodb', function (): void {
 
     assert.that(await progressCollection.indexExists(`${collectionNameProgress}_consumerId_aggregateId`)).
       is.true();
+
+    await client.close();
   });
 });

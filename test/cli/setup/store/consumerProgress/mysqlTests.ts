@@ -74,5 +74,7 @@ suite('setup store consumer-progress mysql', function (): void {
     });
 
     assert.that(checkTableResult[0].length).is.equalTo(1);
+
+    pool.end();
   });
 });

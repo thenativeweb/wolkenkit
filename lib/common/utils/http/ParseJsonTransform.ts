@@ -8,7 +8,7 @@ class ParseJsonTransform extends Transform {
     });
   }
 
-  /* eslint-disable @typescript-eslint/naming-convention, no-underscore-dangle, class-methods-use-this */
+  /* eslint-disable @typescript-eslint/naming-convention, no-underscore-dangle */
   public _transform (chunk: any, encoding: string, next: TransformCallback): void {
     const text = chunk.toString();
 
@@ -24,7 +24,7 @@ class ParseJsonTransform extends Transform {
 
     next(null);
   }
-  /* eslint-enable no-underscore-dangle, class-methods-use-this */
+  /* eslint-enable @typescript-eslint/naming-convention, no-underscore-dangle */
 }
 
 export {

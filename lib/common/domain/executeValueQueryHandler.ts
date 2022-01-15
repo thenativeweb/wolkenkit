@@ -46,7 +46,6 @@ const executeValueQueryHandler = async function ({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
     packageManifest: application.packageManifest
   });
-  // eslint-disable-next-line @typescript-eslint/await-thenable
   const result = await queryHandler.handle(options, {
     client: services.client,
     error: getErrorService({ errors: [ 'NotFound' ]}),

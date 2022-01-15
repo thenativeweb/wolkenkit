@@ -60,7 +60,6 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
         metadata
       }: DomainEventForFlowSandbox<TDomainEventData>
     ): SandboxForFlowWithResult {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForFlowWithResult({
         ...sandboxConfiguration,
         domainEvents: [

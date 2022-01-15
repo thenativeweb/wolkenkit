@@ -51,5 +51,7 @@ suite('setup store domain-event mongodb', function (): void {
       is.true();
     assert.that(await snapshotCollection.indexExists(`${collectionNameSnapshots}_aggregateId`)).
       is.true();
+
+    await client.close();
   });
 });

@@ -396,6 +396,21 @@ $ npm run fuzzing
 
 Running the fuzzer can take a long time. The usual time is about 5 hours. Detailed results for the fuzzing operations are written to `/tmp`.
 
+### Running a local development version of wolkenkit
+
+If you are working on wolkenkit itself, you might want to run an application using your development version without publishing this version as a preview. For that, use the following commands:
+
+```shell
+# First, build your local development version
+$ npx roboter build
+
+# Next, switch to the directory that contains your wolkenkit application
+$ cd <path-of-your-application>
+
+# Run the previously compiled wolkenkit CLI with your application
+$ npx node <path-to-wolkenkit-repository>/build/lib/bin/wolkenkit.js dev
+```
+
 ## Publishing an internal version
 
 While working on wolkenkit itself, it is sometimes necessary to publish an internal version to npm, e.g. to be able to install wolkenkit from the registry. To publish an internal version run the following commands:

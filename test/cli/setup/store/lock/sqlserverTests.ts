@@ -45,5 +45,7 @@ suite('setup store lock sqlserver', function (): void {
     const result = await pool.query(`SELECT [name] FROM sys.tables WHERE [name] = '${tableNameLock}';`);
 
     assert.that(result.recordset.length).is.equalTo(1);
+
+    await pool.close();
   });
 });

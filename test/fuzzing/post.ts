@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import { flaschenpost } from 'flaschenpost';
+import { TestPostScript } from 'roboter';
 import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-(async function (): Promise<void> {
+const postScript: TestPostScript = async (): Promise<void> => {
   const logger = flaschenpost.getLogger();
 
   try {
@@ -19,7 +19,8 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
     ]);
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
-    process.exit(1);
+    throw ex;
   }
-})();
-/* eslint-enable @typescript-eslint/no-floating-promises */
+};
+
+export default postScript;

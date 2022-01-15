@@ -1,7 +1,7 @@
+import { print } from 'graphql';
 import ws from 'ws';
 import { ApolloLink, FetchResult, Observable, Operation } from '@apollo/client';
 import { Client, ClientOptions, createClient } from 'graphql-ws';
-import { GraphQLError, print } from 'graphql';
 
 // This snippet is taken from an example in the
 // [graphql-ws readme](https://github.com/enisdenjo/graphql-ws).
@@ -27,23 +27,17 @@ class WebSocketLink extends ApolloLink {
             return sink.error(err);
           }
 
-          if (err instanceof CloseEvent) {
+          // Dirty hack to check if err is a CloseEvent, since CloseEvent is not
+          // available in Node.js
+          if (Object.getPrototypeOf(err as any)[Symbol.toStringTag] === 'CloseEvent') {
             return sink.error(
 
               // Reason will be available on clean closes
               new Error(
-                `Socket closed with event ${err.code} ${err.reason || ''}`
+                `Socket closed with event ${(err as CloseEvent).code} ${(err as CloseEvent).reason || ''}`
               )
             );
           }
-
-          sink.error(
-            new Error(
-              (err as GraphQLError[]).
-                map(({ message }): string => message).
-                join(', ')
-            )
-          );
         }
       }
     ));

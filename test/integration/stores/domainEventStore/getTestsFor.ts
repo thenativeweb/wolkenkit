@@ -10,7 +10,6 @@ import { toArray } from 'streamtoarray';
 import { v4 } from 'uuid';
 import * as errors from '../../../../lib/common/errors';
 
-/* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {
   createDomainEventStore: ({ suffix }: {
     suffix: string;
@@ -1592,7 +1591,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
   });
 };
-/* eslint-enable mocha/max-top-level-suites */
 
 // eslint-disable-next-line mocha/no-exports
 export { getTestsFor };
