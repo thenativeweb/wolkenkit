@@ -211,7 +211,7 @@
     "roboter": "12.6.0",
     "run-script-os": "1.1.6",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.9.30",
+    "thenativeweb-ux": "5.9.31",
     "wait-for-signals": "1.2.7"
   },
   "scripts": {
