@@ -39,5 +39,7 @@ suite('setup store lock mongodb', function (): void {
 
     assert.that(await locksCollection.indexExists(`${collectionNameLocks}_value`)).
       is.true();
+
+    await client.close();
   });
 });

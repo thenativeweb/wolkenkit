@@ -5,7 +5,7 @@ import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import * as errors from '../../../../lib/common/errors';
 
-/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-disable mocha/no-top-level-hooks */
 const getTestsFor = function ({ createLockStore }: {
   createLockStore: ({ suffix }: { suffix: string }) => Promise<LockStore>;
 }): void {
@@ -166,7 +166,7 @@ const getTestsFor = function ({ createLockStore }: {
     });
   });
 };
-/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-enable mocha/no-top-level-hooks */
 
 // eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

@@ -9,6 +9,7 @@ const sortKeys = function ({ object, recursive = false }: {
   return Object.
     keys(object).
     sort((left: string, right: string): number => left.localeCompare(right)).
+    // eslint-disable-next-line unicorn/prefer-object-from-entries
     reduce((acc: Record<string, any>, key: string): Record<string, any> => {
       let value: any = object[key];
 

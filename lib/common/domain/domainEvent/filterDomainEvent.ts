@@ -19,11 +19,9 @@ const filterDomainEvent = async function ({
   domainEventHandler: DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure>;
   services: Services;
 }): Promise<void> {
-  /* eslint-disable @typescript-eslint/unbound-method */
   if (!domainEventHandler.filter) {
     return;
   }
-  /* eslint-enable @typescript-eslint/unbound-method */
 
   const clonedDomainEvent = cloneDeep(domainEventWithState);
 

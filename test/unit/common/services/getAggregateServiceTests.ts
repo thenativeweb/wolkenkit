@@ -69,18 +69,14 @@ suite('getAggregateService', (): void => {
   setup(async (): Promise<void> => {
     domainEventHandlerCalled = false;
 
-    /* eslint-disable @typescript-eslint/unbound-method */
     const handleFunction = application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle;
 
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle =
       function (state, domainEvent, services): Partial<State> {
         domainEventHandlerCalled = true;
 
         return handleFunction(state, domainEvent, services);
       };
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    /* eslint-enable @typescript-eslint/unbound-method */
 
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
@@ -121,13 +117,11 @@ suite('getAggregateService', (): void => {
     test(`uses the aggregate's isPristine method.`, async (): Promise<void> => {
       let isPristineCalled = false;
 
-      /* eslint-disable @typescript-eslint/unbound-method */
       aggregateInstance.isPristine = function (): boolean {
         isPristineCalled = true;
 
         return true;
       };
-      /* eslint-enable @typescript-eslint/unbound-method */
 
       const isPristine = aggregateService.isPristine();
 

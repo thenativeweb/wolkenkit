@@ -16,7 +16,7 @@ class FilterHeartbeatsTransform extends Transform {
 
     next(null, streamItem);
   }
-  /* eslint-enable no-underscore-dangle, class-methods-use-this */
+  /* eslint-enable @typescript-eslint/naming-convention, no-underscore-dangle, class-methods-use-this */
 }
 
 export {

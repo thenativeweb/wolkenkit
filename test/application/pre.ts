@@ -3,10 +3,10 @@
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
+import { TestPreScript } from 'roboter';
 import * as errors from '../../lib/common/errors';
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-(async function (): Promise<void> {
+const preScript: TestPreScript = async (): Promise<void> => {
   const logger = flaschenpost.getLogger();
 
   try {
@@ -17,7 +17,8 @@ import * as errors from '../../lib/common/errors';
     }
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { err: ex });
-    process.exit(1);
+    throw ex;
   }
-})();
-/* eslint-enable @typescript-eslint/no-floating-promises */
+};
+
+export default preScript;

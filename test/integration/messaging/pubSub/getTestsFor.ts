@@ -4,7 +4,7 @@ import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 
-/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-disable mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPublisher, createSubscriber }: {
   createPublisher: <T extends object> () => Promise<Publisher<T>>;
   createSubscriber: <T extends object> () => Promise<Subscriber<T>>;
@@ -118,7 +118,7 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
     ]);
   });
 };
-/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
+/* eslint-enable mocha/no-top-level-hooks */
 
 // eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

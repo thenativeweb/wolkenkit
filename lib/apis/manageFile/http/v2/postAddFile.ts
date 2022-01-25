@@ -16,7 +16,6 @@ const logger = flaschenpost.getLogger();
 
 const contentTypeRegex = /^\w+\/[-.\w]+(?:\+[-.\w]+)?$/u;
 
-// eslint-disable-next-line @typescript-eslint/no-base-to-string
 const contentTypeRegexAsString = contentTypeRegex.toString().slice(1, -2);
 
 const postAddFile = {
