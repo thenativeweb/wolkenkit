@@ -69,6 +69,14 @@ const devCommand = function (): Command<DevOptions> {
         isRequired: false
       },
       {
+        name: 'identity-provider-algorithm',
+        alias: 'a',
+        description: 'set an identity provider algorithm',
+        parameterName: 'algorithm',
+        type: 'string',
+        isRequired: false
+      },
+      {
         name: 'debug',
         alias: 'd',
         description: 'enable debug mode',
@@ -86,6 +94,7 @@ const devCommand = function (): Command<DevOptions> {
       'health-socket': healthSocket,
       'identity-provider-issuer': identityProviderIssuer,
       'identity-provider-certificate': identityProviderCertificate,
+      'identity-provider-algorithm': identityProviderAlgorithm,
       debug
     }}): Promise<void> {
       buntstift.configure(
@@ -122,7 +131,8 @@ const devCommand = function (): Command<DevOptions> {
         if (identityProviderIssuer && identityProviderCertificate) {
           identityProviders.push({
             issuer: identityProviderIssuer,
-            certificate: getAbsolutePath({ path: identityProviderCertificate, cwd: process.cwd() })
+            certificate: getAbsolutePath({ path: identityProviderCertificate, cwd: process.cwd() }),
+            algorithm: identityProviderAlgorithm
           });
         }
 

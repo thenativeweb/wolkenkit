@@ -7,5 +7,6 @@ export interface DevOptions extends RootOptions {
   'health-socket'?: string;
   'identity-provider-issuer'?: string;
   'identity-provider-certificate'?: string;
+  'identity-provider-algorithm'?: string;
   debug: boolean;
 }
