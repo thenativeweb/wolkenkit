@@ -202,7 +202,7 @@
     "assertthat": "6.3.13",
     "graphql-tag": "2.12.5",
     "next": "11.1.2",
-    "node-fetch": "2.6.1",
+    "node-fetch": "3.2.2",
     "nodeenv": "3.0.71",
     "npm-check": "5.9.2",
     "react": "17.0.2",
