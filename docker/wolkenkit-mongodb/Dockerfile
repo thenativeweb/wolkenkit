@@ -1,2 +1,2 @@
-FROM bitnami/mongodb:4.4.12
+FROM bitnami/mongodb:4.4.13
 LABEL maintainer="the native web <hello@thenativeweb.io>"
