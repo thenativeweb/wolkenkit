@@ -87,6 +87,7 @@ const service = {
         fileStoreOptions,
         graphqlApi: { enableIntegratedClient: true },
         healthPortOrSocket: services.singleProcess.main.healthPort,
+        heartbeatInterval: configurationDefinitions.singleProcess.main.heartbeatInterval.defaultValue,
         httpApi: true,
         identityProviders,
         lockStoreOptions,
