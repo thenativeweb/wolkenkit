@@ -14,6 +14,7 @@ const service = {
         enableOpenApiDocumentation: true,
         healthCorsOrigin: corsOrigin,
         healthPortOrSocket: services.microservice.domainEvent.healthPort,
+        heartbeatInterval: configurationDefinitions.microservice.domainEvent.heartbeatInterval.defaultValue,
         identityProviders,
         portOrSocket: services.microservice.domainEvent.privatePort,
         pubSubOptions,
