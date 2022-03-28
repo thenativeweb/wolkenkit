@@ -203,7 +203,7 @@
     "graphql-tag": "2.12.5",
     "next": "11.1.2",
     "node-fetch": "2.6.1",
-    "nodeenv": "3.0.71",
+    "nodeenv": "3.0.74",
     "npm-check": "5.9.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
