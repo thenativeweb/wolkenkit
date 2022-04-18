@@ -157,7 +157,7 @@
     "compression": "1.7.4",
     "content-type": "1.0.4",
     "cors": "2.8.5",
-    "defekt": "8.0.0",
+    "defekt": "9.1.1",
     "ejs": "3.1.6",
     "eventemitter2": "6.4.5",
     "express": "4.17.2",
