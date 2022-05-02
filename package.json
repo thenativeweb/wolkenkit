@@ -160,7 +160,7 @@
     "defekt": "8.0.0",
     "ejs": "3.1.6",
     "eventemitter2": "6.4.5",
-    "express": "4.17.2",
+    "express": "4.18.1",
     "flaschenpost": "5.0.49",
     "get-cors-origin": "4.0.24",
     "get-graphql-from-jsonschema": "8.0.16",
