@@ -167,7 +167,7 @@
     "graphql": "16.3.0",
     "graphql-ws": "5.5.0",
     "helmet": "4.6.0",
-    "ioredis": "4.28.1",
+    "ioredis": "5.2.3",
     "is-typescript": "4.0.6",
     "isolated": "3.0.25",
     "limes": "6.1.9",
