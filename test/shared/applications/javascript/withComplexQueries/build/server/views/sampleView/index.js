@@ -6,8 +6,10 @@ const { firstTwo } = require('./queries/firstTwo');
 const { flowSampleFlowUpdatedNotificationSubscriber } = require('./notificationSubscribers/flowSampleFlowUpdatedNotificationSubscriber');
 const { notFound } = require('./queries/notFound');
 const { streamAuthorized } = require('./queries/streamAuthorized');
+const { streamUnauthorized } = require('./queries/streamUnauthorized');
 const { streamWithOptions } = require('./queries/streamWithOptions');
 const { valueAuthorized } = require('./queries/valueAuthorized');
+const { valueUnauthorized } = require('./queries/valueUnauthorized');
 const { valueWithOptions } = require('./queries/valueWithOptions');
 
 const sampleView = {
@@ -17,8 +19,10 @@ const sampleView = {
     firstTwo,
     notFound,
     streamAuthorized,
+    streamUnauthorized,
     streamWithOptions,
     valueAuthorized,
+    valueUnauthorized,
     valueWithOptions
   },
   notificationSubscribers: {

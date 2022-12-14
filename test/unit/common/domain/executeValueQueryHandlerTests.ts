@@ -252,6 +252,43 @@ suite('executeValueQueryHandler', (): void => {
     );
   });
 
+  test('throws an exception if the query is not authorized (async).', async (): Promise<void> => {
+    const queryHandlerIdentifier = {
+      view: { name: 'sampleView' },
+      name: 'valueUnauthorized'
+    };
+
+    const domainEvents = [
+      {
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
+        name: 'executed',
+        id: v4()
+      }
+    ];
+
+    (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+    await assert.that(async (): Promise<void> => {
+      await executeValueQueryHandler({
+        application,
+        queryHandlerIdentifier,
+        services: { client: {
+          ...clientService,
+          user: {
+            ...clientService.user,
+            id: 'not.jane.doe'
+          }
+        }},
+        options: {}
+      });
+    }).is.throwingAsync<CustomError>(
+      (ex): boolean => ex.code === errors.QueryNotAuthorized.code
+    );
+  });
+
   test('returns the result item and respects the given options.', async (): Promise<void> => {
     const queryHandlerIdentifier = {
       view: { name: 'sampleView' },

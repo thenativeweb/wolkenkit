@@ -46,6 +46,7 @@ const executeValueQueryHandler = async function ({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
     packageManifest: application.packageManifest
   });
+
   const result = await queryHandler.handle(options, {
     client: services.client,
     error: getErrorService({ errors: [ 'NotFound' ]}),

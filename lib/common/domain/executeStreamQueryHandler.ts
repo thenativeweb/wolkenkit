@@ -49,6 +49,7 @@ const executeStreamQueryHandler = async function ({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
     packageManifest: application.packageManifest
   });
+
   const resultStream = await queryHandler.handle(options, {
     client: services.client,
     infrastructure: application.infrastructure,
@@ -59,6 +60,7 @@ const executeStreamQueryHandler = async function ({
     client: services.client,
     logger: loggerService
   };
+
   const validateStream = new Transform({
     objectMode: true,
     async transform (resultItem, encoding, callback): Promise<void> {

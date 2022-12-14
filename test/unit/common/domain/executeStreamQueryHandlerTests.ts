@@ -264,6 +264,47 @@ suite('executeStreamQueryHandler', (): void => {
     assert.that(resultViewItems).is.equalTo([]);
   });
 
+  test('streams the result items and omits unauthorized items (async).', async (): Promise<void> => {
+    const queryHandlerIdentifier = {
+      view: { name: 'sampleView' },
+      name: 'streamUnauthorized'
+    };
+
+    const domainEvents = [
+      {
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
+        name: 'executed',
+        id: v4()
+      }
+    ];
+
+    (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+    const queryResultStream = await executeStreamQueryHandler({
+      application,
+      queryHandlerIdentifier,
+      services: { client: {
+        ...clientService,
+        user: {
+          ...clientService.user,
+          id: 'not.jane.doe'
+        }
+      }},
+      options: {}
+    });
+
+    const resultViewItems = [];
+
+    for await (const item of queryResultStream) {
+      resultViewItems.push(item);
+    }
+
+    assert.that(resultViewItems).is.equalTo([]);
+  });
+
   test('streams the result items and respects the given options.', async (): Promise<void> => {
     const queryHandlerIdentifier = {
       view: { name: 'sampleView' },
