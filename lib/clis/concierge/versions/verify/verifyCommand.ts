@@ -83,7 +83,7 @@ const verifyCommand = function (): Command<VerifyOptions> {
           typescript: [
             {
               source: path.relative(applicationRoot, roboterPackageJsonPath),
-              version: roboterPackageJson.dependencies!.typescript
+              version: roboterPackageJson.devDependencies!.typescript
             },
             {
               source: 'lib/version.ts',
