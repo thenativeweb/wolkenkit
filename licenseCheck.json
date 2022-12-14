@@ -1,0 +1,29 @@
+{
+  "compatibleLicenses": [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC-BY-4.0",
+    "CC-BY-3.0",
+    "CC0-1.0",
+    "ISC",
+    "LGPL-2.1+",
+    "LGPL-3.0",
+    "Python-2.0",
+    "MIT",
+    "Unlicense",
+    "WTFPL"
+  ],
+  "knownPackageLicenses": {
+    "callsite": {
+      "1.0.0": "MIT"
+    },
+    "cluster-key-slot": {
+      "1.1.0": "Apache-2.0"
+    },
+    "rx-lite": {
+      "3.1.2": "Apache-2.0"
+    }
+  }
+}

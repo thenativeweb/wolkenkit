@@ -9,6 +9,7 @@ const service = {
         applicationDirectory,
         healthCorsOrigin: corsOrigin,
         healthPortOrSocket: services.microservice.notification.healthPort,
+        heartbeatInterval: configurationDefinitions.microservice.notification.heartbeatInterval.defaultValue,
         identityProviders,
         notificationCorsOrigin: corsOrigin,
         portOrSocket: services.microservice.notification.privatePort,

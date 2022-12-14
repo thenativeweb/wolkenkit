@@ -321,7 +321,7 @@ class AggregateInstance<TState extends State> {
       }
 
       domainEvents = [
-        unstoredDomainEvents[unstoredDomainEvents.length - 1]
+        unstoredDomainEvents.at(-1)!
       ];
     }
 

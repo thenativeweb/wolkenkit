@@ -88,5 +88,7 @@ suite('setup store domain-event mysql', function (): void {
     });
 
     assert.that(checkTableResult[0].length).is.equalTo(1);
+
+    pool.end();
   });
 });

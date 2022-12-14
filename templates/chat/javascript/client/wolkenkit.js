@@ -67,7 +67,7 @@ const parseNewlineDelimitedStream = function (stream) {
           }
         }
 
-        buffer = lines[lines.length - 1];
+        buffer = lines.at(-1);
       }
     },
 
@@ -136,7 +136,7 @@ class Wolkenkit {
   }
 
   async queryView ({ viewName, queryName }) {
-    const url = `${this.protocol}://${this.hostName}:${this.port}/views/v2/${viewName}/${queryName}`;
+    const url = `${this.protocol}://${this.hostName}:${this.port}/views/v2/${viewName}/stream/${queryName}`;
 
     let response;
 

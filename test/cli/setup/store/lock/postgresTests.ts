@@ -43,6 +43,9 @@ suite('setup store lock postgres', function (): void {
     });
 
     assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+
+    connection.release();
+    await pool.end();
   });
 
   test(`fails if invalid 'encrypt-connection' options are given.`, async (): Promise<void> => {
@@ -95,5 +98,8 @@ suite('setup store lock postgres', function (): void {
     });
 
     assert.that(checkTableResult.rows[0].to_regclass).is.not.null();
+
+    connection.release();
+    await pool.end();
   });
 });

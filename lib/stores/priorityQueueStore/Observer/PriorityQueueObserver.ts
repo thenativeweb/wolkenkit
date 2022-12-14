@@ -246,7 +246,6 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
     return this.queue.setup();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   public static async create<TItem extends object, TItemIdentifier extends object> (
     { observedQueue }: { observedQueue: PriorityQueueStore<TItem, TItemIdentifier> }
   ): Promise<PriorityQueueObserver<TItem, TItemIdentifier>> {

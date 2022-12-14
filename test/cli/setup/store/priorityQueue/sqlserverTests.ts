@@ -50,5 +50,7 @@ suite('setup store priority-queue sqlserver', function (): void {
     result = await pool.query(`SELECT [name] FROM sys.tables WHERE [name] = '${tableNamePriorityQueue}';`);
 
     assert.that(result.recordset.length).is.equalTo(1);
+
+    await pool.close();
   });
 });

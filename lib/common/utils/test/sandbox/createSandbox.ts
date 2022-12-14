@@ -149,7 +149,6 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
     forAggregate<TState extends State>({ aggregateIdentifier }: {
       aggregateIdentifier: AggregateIdentifier;
     }): SandboxForAggregate<TState> {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForAggregate<TState>({
         ...sandboxConfiguration,
         aggregateIdentifier,
@@ -161,7 +160,6 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
     forFlow ({ flowName }: {
       flowName: string;
     }): SandboxForFlow {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForFlow({
         ...sandboxConfiguration,
         flowName,

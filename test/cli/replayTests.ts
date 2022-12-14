@@ -96,6 +96,11 @@ suite('replay', function (): void {
     }));
   });
 
+  teardown(async (): Promise<void> => {
+    await domainEventStore.destroy();
+    await consumerProgressStore.destroy();
+  });
+
   test('performs a replay for all aggregates in all contexts without resetting the flows.', async (): Promise<void> => {
     const domainEvents = [
       buildDomainEvent({
