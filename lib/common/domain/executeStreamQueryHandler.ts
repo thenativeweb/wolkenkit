@@ -61,8 +61,8 @@ const executeStreamQueryHandler = async function ({
   };
   const validateStream = new Transform({
     objectMode: true,
-    transform (resultItem, encoding, callback): void {
-      if (!queryHandler.isAuthorized(resultItem, isAuthorizedServices)) {
+    async transform (resultItem, encoding, callback): Promise<void> {
+      if (!await queryHandler.isAuthorized(resultItem, isAuthorizedServices)) {
         return callback(null);
       }
 

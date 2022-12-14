@@ -40,7 +40,7 @@ const getNotifications = {
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {
       try {
-        const handleNotification = (notification: Notification): void => {
+        const handleNotification = async (notification: Notification): Promise<void> => {
           try {
             validateNotification({ notification, application });
           } catch {
@@ -53,7 +53,7 @@ const getNotifications = {
           }
 
           const notificationHandler = application.notifications[notification.name];
-          const isNotificationAuthorized = notificationHandler.isAuthorized(
+          const isNotificationAuthorized = await notificationHandler.isAuthorized(
             notification.data,
             notification.metadata,
             {
