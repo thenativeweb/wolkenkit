@@ -4,8 +4,11 @@
   "description": "",
   "dependencies": {},
   "devDependencies": {
-    "@types/mocha": "10.0.1",
-    "mocha": "10.2.0",
+    "@types/async-retry": "1.4.5",
+    "@types/inquirer": "9.0.3",
+    "@types/mocha": "8.2.2",
+    "@types/mongodb": "4.0.7",
+    "mocha": "9.0.2",
     "run-script-os": "1.1.6",
     "ts-node": "10.1.0"
   },
