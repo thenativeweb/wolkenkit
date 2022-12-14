@@ -16,7 +16,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -35,7 +35,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -54,7 +54,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -73,7 +73,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -92,7 +92,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -111,7 +111,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: npm
@@ -130,7 +130,7 @@ updates:
   allow:
   - dependency-type: direct
   commit-message:
-    prefix: fix
+    prefix: chore
     prefix-development: chore
 
 - package-ecosystem: docker
@@ -146,7 +146,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-minio"
@@ -161,7 +161,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-mongodb"
@@ -176,7 +176,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-mysql"
@@ -191,7 +191,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-nodejs"
@@ -206,7 +206,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-postgres"
@@ -221,7 +221,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-postgres-ssl"
@@ -236,7 +236,7 @@ updates:
   labels:
     - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-redis"
@@ -251,7 +251,7 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
 
 - package-ecosystem: docker
   directory: "/docker/wolkenkit-sqlserver"
@@ -266,4 +266,4 @@ updates:
   labels:
   - Dependencies
   commit-message:
-    prefix: fix
+    prefix: chore
