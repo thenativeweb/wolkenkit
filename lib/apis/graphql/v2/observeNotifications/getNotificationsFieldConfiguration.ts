@@ -72,15 +72,20 @@ const getNotificationsFieldConfiguration = function ({ application, notification
         }
 
         const notificationHandler = application.notifications[notification.name];
+        const isNotificationAuthorized = await notificationHandler.isAuthorized(
+          notification.data,
+          notification.metadata,
+          {
+            logger: getLoggerService({
+              fileName: `<app>/server/notifications/${notification.name}`,
+              packageManifest: application.packageManifest
+            }),
+            infrastructure: application.infrastructure,
+            client: clientService
+          }
+        );
 
-        if (!await notificationHandler.isAuthorized(notification.data, notification.metadata, {
-          logger: getLoggerService({
-            fileName: `<app>/server/notifications/${notification.name}`,
-            packageManifest: application.packageManifest
-          }),
-          infrastructure: application.infrastructure,
-          client: clientService
-        })) {
+        if (!isNotificationAuthorized) {
           continue;
         }
 

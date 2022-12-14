@@ -58,7 +58,9 @@ const executeValueQueryHandler = async function ({
     logger: loggerService
   };
 
-  if (!await queryHandler.isAuthorized(result, isAuthorizedServices)) {
+  const isAuthorized = await queryHandler.isAuthorized(result, isAuthorizedServices);
+
+  if (!isAuthorized) {
     throw new errors.QueryNotAuthorized();
   }
 
